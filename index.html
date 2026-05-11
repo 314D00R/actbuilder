@@ -998,7 +998,7 @@
                     <div style="display: flex; gap: 10px; align-items: center; flex: 1; min-width: 0;">
                         <strong style="font-size: 16px; color: #2c3e50; white-space: nowrap;">Блок №${id}</strong>
                         <select id="bld_sel_win_${id}" class="bld-select" style="width:130px; flex-shrink:0; padding:4px; font-size:12px;" onchange="saveData()">${getBuildingOptions()}</select>
-                        <input type="text" id="name_win_${id}" placeholder="Назва зони пошкодження (напр. Вікна металопластикові / Двері вхідні металеві)" style="flex:1; min-width:0; padding:8px 10px; font-size:13px; border:1px solid #ccc; border-radius:4px;" oninput="saveData()">
+                        <input type="text" id="name_win_${id}" placeholder="Назва (напр. Кухня)" style="flex:1; min-width:0; padding:8px 10px; font-size:13px; border:1px solid #ccc; border-radius:4px;" oninput="saveData()">
                     </div>
                     ${id > 1 ? `<button onclick="document.getElementById('win-block-${id}').remove(); calcAll();" style="color: #e74c3c; cursor: pointer; font-size: 13px; border: none; background: none; font-weight: bold; text-decoration: underline; margin-left:10px; white-space:nowrap;">✖ Видалити</button>` : ''}
                 </div>
@@ -1083,7 +1083,7 @@
                     <div style="display: flex; gap: 10px; align-items: center; flex: 1; min-width: 0;">
                         <strong style="font-size: 16px; color: #2c3e50; white-space: nowrap;">${title} №${id}</strong>
                         <select id="bld_sel_${type}_${id}" class="bld-select" style="width:130px; flex-shrink:0; padding:4px; font-size:12px;" onchange="saveData()">${getBuildingOptions()}</select>
-                        <input type="text" id="name_${type}_${id}" placeholder="Назва зони пошкодження (напр. Дах з металочерепиці / Опорядження внутрішніх стін / Підлога з ламінату / Утеплений фасад )" style="flex:1; min-width:0; padding:8px 10px; font-size:13px; border:1px solid #ccc; border-radius:4px;" oninput="saveData()">
+                        <input type="text" id="name_${type}_${id}" placeholder="Назва (напр. Спальня)" style="flex:1; min-width:0; padding:8px 10px; font-size:13px; border:1px solid #ccc; border-radius:4px;" oninput="saveData()">
                     </div>
                     ${id > 1 ? `<button onclick="document.getElementById('zone-${type}-${id}').remove(); calcAll();" style="color: #e74c3c; cursor: pointer; font-size: 13px; border: none; background: none; font-weight: bold; text-decoration: underline; margin-left:10px; white-space:nowrap;">✖ Видалити</button>` : ''}
                 </div>
