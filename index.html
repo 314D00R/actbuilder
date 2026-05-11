@@ -111,8 +111,50 @@
         [data-tip]::after { content: attr(data-tip); position: absolute; bottom: 125%; left: 50%; transform: translateX(-50%); background: #2c3e50; color: white; padding: 5px 10px; border-radius: 4px; font-size: 11px; white-space: nowrap; pointer-events: none; opacity: 0; transition: opacity 0.2s; z-index: 100; }
         [data-tip]:hover::after { opacity: 1; }
 
-        /* Поле нотаток */
-        .notes-area { width: 100%; min-height: 80px; padding: 10px; border: 1px solid #ccc; border-radius: 4px; font-size: 13px; font-family: inherit; resize: vertical; box-sizing: border-box; }
+        /* Плаваюча кнопка інструкції */
+        .help-float-btn {
+            position: fixed;
+            bottom: 80px;
+            right: 20px;
+            width: 52px;
+            height: 52px;
+            border-radius: 50%;
+            background: #2980b9;
+            color: white;
+            border: none;
+            font-size: 22px;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            z-index: 999;
+            transition: 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-decoration: none;
+        }
+        .help-float-btn:hover {
+            background: #1a6a9a;
+            transform: scale(1.1);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.4);
+        }
+        .help-float-btn::after {
+            content: 'Інструкція';
+            position: absolute;
+            right: 60px;
+            background: #2c3e50;
+            color: white;
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: bold;
+            white-space: nowrap;
+            opacity: 0;
+            transition: opacity 0.2s;
+            pointer-events: none;
+        }
+        .help-float-btn:hover::after {
+            opacity: 1;
+        }
     </style>
 </head>
 <body>
@@ -435,7 +477,7 @@
             <h2 style="color: #27ae60; margin-top: 0; font-size: 28px;">Фінальний крок</h2>
             <p style="font-size: 16px; margin-bottom: 20px;">Оберіть документ, який бажаєте згенерувати.</p>
             <div class="export-btns">
-		<button class="btn-green" id="btn-act" onclick="generateWord('act')">📝 ЗГЕНЕРУВАТИ АКТ</button>
+                <button class="btn-green" id="btn-act" onclick="generateWord('act')">📝 ЗГЕНЕРУВАТИ АКТ</button>
                 <button class="btn-blue" id="btn-checklist" onclick="generateWord('checklist')">📄 ЗГЕНЕРУВАТИ ЧЕК-ЛИСТ</button>
             </div>
             <hr style="margin: 30px 0; border: none; border-top: 1px solid #ddd;">
@@ -446,6 +488,8 @@
     </div>
 
 </div>
+
+<a class="help-float-btn" href="https://docs.google.com/document/d/1iVmeanEzfIvx4yjna28QHMFSGCaN8J-GzgyJZ3ZUn7U/edit?tab=t.0" target="_blank" title="Інструкція з користування">?</a>
 
 <div class="master-total-box">
     <div class="author-credit">Розроблено by Volodymyr Korchma<br>korchmavova@gmail.com</div>
@@ -974,7 +1018,7 @@
                     <div style="display: flex; gap: 10px; align-items: center; flex: 1; min-width: 0;">
                         <strong style="font-size: 16px; color: #2c3e50; white-space: nowrap;">Блок №${id}</strong>
                         <select id="bld_sel_win_${id}" class="bld-select" style="width:130px; flex-shrink:0; padding:4px; font-size:12px;" onchange="saveData()">${getBuildingOptions()}</select>
-                        <input type="text" id="name_win_${id}" placeholder="Назва пошкодженої зони (наприклад: "Вікна металопластикові / Двері вхідні металеві)" style="flex:1; min-width:0; padding:8px 10px; font-size:13px; border:1px solid #ccc; border-radius:4px;" oninput="saveData()">
+                        <input type="text" id="name_win_${id}" placeholder="Назва (напр. Кухня)" style="flex:1; min-width:0; padding:8px 10px; font-size:13px; border:1px solid #ccc; border-radius:4px;" oninput="saveData()">
                     </div>
                     ${id > 1 ? `<button onclick="document.getElementById('win-block-${id}').remove(); calcAll();" style="color: #e74c3c; cursor: pointer; font-size: 13px; border: none; background: none; font-weight: bold; text-decoration: underline; margin-left:10px; white-space:nowrap;">✖ Видалити</button>` : ''}
                 </div>
@@ -1059,7 +1103,7 @@
                     <div style="display: flex; gap: 10px; align-items: center; flex: 1; min-width: 0;">
                         <strong style="font-size: 16px; color: #2c3e50; white-space: nowrap;">${title} №${id}</strong>
                         <select id="bld_sel_${type}_${id}" class="bld-select" style="width:130px; flex-shrink:0; padding:4px; font-size:12px;" onchange="saveData()">${getBuildingOptions()}</select>
-                        <input type="text" id="name_${type}_${id}" placeholder="Назва пошкодженої зони (наприклад: "Дах з металочерепиці / Опорядження внутрішніх стін / Стеля підвісна / Підлога з ламінату / Утеплений фасад , ")" style="flex:1; min-width:0; padding:8px 10px; font-size:13px; border:1px solid #ccc; border-radius:4px;" oninput="saveData()">
+                        <input type="text" id="name_${type}_${id}" placeholder="Назва (напр. Спальня)" style="flex:1; min-width:0; padding:8px 10px; font-size:13px; border:1px solid #ccc; border-radius:4px;" oninput="saveData()">
                     </div>
                     ${id > 1 ? `<button onclick="document.getElementById('zone-${type}-${id}').remove(); calcAll();" style="color: #e74c3c; cursor: pointer; font-size: 13px; border: none; background: none; font-weight: bold; text-decoration: underline; margin-left:10px; white-space:nowrap;">✖ Видалити</button>` : ''}
                 </div>
@@ -1459,14 +1503,37 @@
 
         (data.windows || []).forEach(w => {
             let area = parseFloat(w.res_w) || 0;
-            let textOutput = "";
-            if(w.type.includes('door_in_6') || w.type.includes('door_out_7')) textOutput = formatDamageText(w.qty, w.w, w.h, 0, w.desc); 
-            else textOutput = formatDamageText(w.qty, w.w, w.h, area, w.desc);
+            let slopeArea = parseFloat(w.res_s) || 0;
+            let isDoor = w.type === 'door_in_6' || w.type === 'door_out_7';
+            let isDoorMp = w.type === 'door_mp';
+            let isFrame = w.type === 'frame';
 
-            if(!textOutput && !w.desc) return;
+            // Формуємо текст про вікно/двері (розміри + площа)
+            let winText = "";
+            if (isDoor) {
+                winText = formatDamageText(w.qty, w.w, w.h, 0, "");
+            } else {
+                winText = formatDamageText(w.qty, w.w, w.h, area, "");
+            }
+
+            // Формуємо текст про укоси (тільки для типу frame)
+            let slopeText = "";
+            if (isFrame && slopeArea > 0) {
+                slopeText = `загальна площа укосів — ${slopeArea.toFixed(2)} кв. м;`;
+            }
+
+            // Опис пошкодження
+            let cleanDesc = (w.desc || "").trim();
+            let descText = (cleanDesc && cleanDesc !== "-") ? cleanDesc + ";" : "";
+
+            // Збираємо фінальний рядок: [вікно]; [укоси]; [опис]
+            let parts = [winText, slopeText, descText].filter(Boolean);
+            let textOutput = parts.join(" ");
+
+            if (!textOutput) return;
             let bld = w.bld || "no_bld";
             if(!lists.win_door[bld]) lists.win_door[bld] = { letter_text: w.bld ? `Літ. «${w.bld}»:` : "", show_letter: !!w.bld, rooms: [] };
-            if(textOutput) lists.win_door[bld].rooms.push({ room_name: w.name || "Блок", text: textOutput });
+            lists.win_door[bld].rooms.push({ room_name: w.name || "Блок", text: textOutput });
         });
 
         (data.eng || []).forEach(e => {
