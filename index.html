@@ -210,15 +210,15 @@
             
             <h3 class="smart-title" style="margin-top: 20px;">Присутність та Заява</h3>
             <div class="row">
-                <div><label>У присутності (введіть текст)</label><input type="text" id="present_manual" placeholder="власника Іванова Івана Івановича" oninput="saveData()"></div>
+                <div><label>У присутності (введіть текст)</label><input type="text" id="present_manual" placeholder="Іванова Івана Івановича" oninput="saveData()"></div>
             </div>
             <div class="row">
-                <div><label>На підставі заяви</label><input type="text" id="zayava_info" placeholder="власника Іванова Івана Івановича від 13.02.2026 №123" oninput="saveData()"></div>
+                <div><label>На підставі заяви</label><input type="text" id="zayava_info" placeholder="Іванова Івана Івановича від 13.02.2026 №123" oninput="saveData()"></div>
             </div>
         </div>
 
         <div class="smart-block">
-            <h3 class="smart-title">Критерії оцінки (тільки для Чеклиста)</h3>
+            <h3 class="smart-title">Критерії оцінки (з Чеклиста)</h3>
             <div class="row">
                 <div><label>Пріоритетне право?</label><select id="q_1" onchange="saveData()"><option>ні</option><option>так</option></select></div>
                 <div><label>Проведено ремонт?</label><select id="q_2" onchange="saveData()"><option>ні</option><option>так</option></select></div>
@@ -244,7 +244,7 @@
                 <div><label>від (Дата)</label><input type="text" id="order_date" placeholder="08.09.2023" oninput="saveStatic()"></div>
             </div>
             <div class="row">
-                <div><label>Назва рішення (повна)</label><input type="text" id="order_name" value="«Про створення комісії з розгляду питань надання компенсації...»" oninput="saveStatic()"></div>
+                <div><label>Назва рішення (повна)</label><input type="text" id="order_name" placeholder="«Про створення комісії з розгляду питань надання компенсації...»" oninput="saveStatic()"></div>
             </div>
             
             <hr style="margin: 20px 0; border: 1px solid #ddd;">
@@ -279,8 +279,8 @@
             <div class="row">
                 <div><label>Поверхів загалом</label><input type="text" id="floors_total" placeholder="9, квартира на 5 поверсі" value="1" oninput="saveData()"></div>
                 <div><label>Наземних</label><input type="text" id="floors_over" placeholder="1" oninput="saveData()"></div>
-                <div><label>Підземних</label><input type="text" id="floors_under" placeholder="відсутні" oninput="saveData()"></div>
-                <div><label>Мансардних</label><input type="text" id="mansard" placeholder="відсутні" oninput="saveData()"></div>
+                <div><label>Підземних</label><input type="text" id="floors_under" value="відсутні" oninput="saveData()"></div>
+                <div><label>Мансардних</label><input type="text" id="mansard" value="відсутні" oninput="saveData()"></div>
             </div>
             <div class="row">
                 <div><label>Кількість секцій</label><input type="text" id="sections" value="відсутні" oninput="saveData()"></div>
@@ -288,7 +288,7 @@
                 <div><label>Площа нежитлових (кв.м)</label><input type="text" id="built_in_area" value="0" oninput="saveData()"></div>
             </div>
             <div class="row">
-                <div><label>Правовстановлюючі док-ти (де лежать)</label><input type="text" id="legal_docs" placeholder="Витяг з реєстру... Зберігаються у власника." oninput="saveData()"></div>
+                <div><label>Правовстановлюючі док-ти (де лежать)</label><input type="text" id="legal_docs" placeholder="Технічний паспорт ...; Витяг з реєстру... " oninput="saveData()"></div>
             </div>
         </div>
 
@@ -414,7 +414,7 @@
                 <div><label>Ймовірні причини</label><input type="text" id="dam_reason" value="вибухова хвиля внаслідок атаки ударних БПЛА Російської Федерації" oninput="saveData()"></div>
             </div>
             <div class="row">
-                <div><label>Висновки комісії</label><input type="text" id="conclusions" value="Для визначення збитків потрібно замовити звіт..." oninput="saveData()"></div>
+                <div><label>Висновки комісії</label><input type="text" id="conclusions" placeholder="Для визначення збитків потрібно замовити звіт..." oninput="saveData()"></div>
             </div>
             <div class="row">
                 <div><label>Інша додаткова інформація (авто, обладнання)</label><input type="text" id="extra_info" placeholder="-" oninput="saveData()"></div>
@@ -435,8 +435,8 @@
             <h2 style="color: #27ae60; margin-top: 0; font-size: 28px;">Фінальний крок</h2>
             <p style="font-size: 16px; margin-bottom: 20px;">Оберіть документ, який бажаєте згенерувати.</p>
             <div class="export-btns">
+		<button class="btn-green" id="btn-act" onclick="generateWord('act')">📝 ЗГЕНЕРУВАТИ АКТ</button>
                 <button class="btn-blue" id="btn-checklist" onclick="generateWord('checklist')">📄 ЗГЕНЕРУВАТИ ЧЕК-ЛИСТ</button>
-                <button class="btn-green" id="btn-act" onclick="generateWord('act')">📝 ЗГЕНЕРУВАТИ АКТ</button>
             </div>
             <hr style="margin: 30px 0; border: none; border-top: 1px solid #ddd;">
             <!-- НОВЕ: Дублювати дані на новий об'єкт -->
@@ -911,7 +911,7 @@
             <div class="dynamic-list-item bld-block" id="bld-block-${bldCount}" data-id="${bldCount}">
                 <button onclick="document.getElementById('bld-block-${bldCount}').remove(); updateBuildingDropdowns(); saveData();" style="position:absolute; right:10px; top:10px; color:#e74c3c; border:none; background:none; cursor:pointer; font-weight:bold;">✖</button>
                 <div class="row" style="margin-bottom:10px;">
-                    <div><label style="color:#2980b9;">Літера (Назва)</label><input type="text" class="bld-name" id="bld_name_${bldCount}" placeholder="Літ. 2Х (або пусто для квартири)" oninput="updateBuildingDropdowns(); saveData();"></div>
+                    <div><label style="color:#2980b9;">Літера (Назва)</label><input type="text" class="bld-name" id="bld_name_${bldCount}" placeholder="Літ. 2Х (за наявності в тех. паспорті)" oninput="updateBuildingDropdowns(); saveData();"></div>
                 </div>
                 <div class="row">
                     <div><label>Фундаменти</label><select id="bld_fnd_${bldCount}" onchange="checkCustom(this)">${optFnd}</select></div>
@@ -974,7 +974,7 @@
                     <div style="display: flex; gap: 10px; align-items: center; flex: 1; min-width: 0;">
                         <strong style="font-size: 16px; color: #2c3e50; white-space: nowrap;">Блок №${id}</strong>
                         <select id="bld_sel_win_${id}" class="bld-select" style="width:130px; flex-shrink:0; padding:4px; font-size:12px;" onchange="saveData()">${getBuildingOptions()}</select>
-                        <input type="text" id="name_win_${id}" placeholder="Назва (напр. Кухня)" style="flex:1; min-width:0; padding:8px 10px; font-size:13px; border:1px solid #ccc; border-radius:4px;" oninput="saveData()">
+                        <input type="text" id="name_win_${id}" placeholder="Назва пошкодженої зони (наприклад: "Вікна металопластикові / Двері вхідні металеві)" style="flex:1; min-width:0; padding:8px 10px; font-size:13px; border:1px solid #ccc; border-radius:4px;" oninput="saveData()">
                     </div>
                     ${id > 1 ? `<button onclick="document.getElementById('win-block-${id}').remove(); calcAll();" style="color: #e74c3c; cursor: pointer; font-size: 13px; border: none; background: none; font-weight: bold; text-decoration: underline; margin-left:10px; white-space:nowrap;">✖ Видалити</button>` : ''}
                 </div>
@@ -1059,7 +1059,7 @@
                     <div style="display: flex; gap: 10px; align-items: center; flex: 1; min-width: 0;">
                         <strong style="font-size: 16px; color: #2c3e50; white-space: nowrap;">${title} №${id}</strong>
                         <select id="bld_sel_${type}_${id}" class="bld-select" style="width:130px; flex-shrink:0; padding:4px; font-size:12px;" onchange="saveData()">${getBuildingOptions()}</select>
-                        <input type="text" id="name_${type}_${id}" placeholder="Назва (напр. Спальня)" style="flex:1; min-width:0; padding:8px 10px; font-size:13px; border:1px solid #ccc; border-radius:4px;" oninput="saveData()">
+                        <input type="text" id="name_${type}_${id}" placeholder="Назва пошкодженої зони (наприклад: "Дах з металочерепиці / Опорядження внутрішніх стін / Стеля підвісна / Підлога з ламінату / Утеплений фасад , ")" style="flex:1; min-width:0; padding:8px 10px; font-size:13px; border:1px solid #ccc; border-radius:4px;" oninput="saveData()">
                     </div>
                     ${id > 1 ? `<button onclick="document.getElementById('zone-${type}-${id}').remove(); calcAll();" style="color: #e74c3c; cursor: pointer; font-size: 13px; border: none; background: none; font-weight: bold; text-decoration: underline; margin-left:10px; white-space:nowrap;">✖ Видалити</button>` : ''}
                 </div>
