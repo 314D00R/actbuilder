@@ -145,7 +145,6 @@
 <body>
 
 <div class="container">
-    <!-- Рядок стану -->
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 8px;">
         <div style="font-size: 13px; color: #666;">
             <strong style="color: #2c3e50;">ActBuilder</strong> &nbsp;|&nbsp; єВідновлення
@@ -169,7 +168,6 @@
         <button class="m-tab" onclick="openMainTab('t-export')" style="background: #27ae60; color: white;">10. Висновки/Експорт</button>
     </div>
 
-    <!-- ====== ВСІ ВКЛАДКИ ====== -->
 
     <div id="t-general" class="tab-content active">
         <div class="smart-block">
@@ -253,10 +251,9 @@
             </div>
         </div>
 
-        <!-- НОВЕ: Нотатки до об'єкта -->
         <div class="smart-block">
             <h3 class="smart-title">📝 Службові нотатки (не потрапляють в документ)</h3>
-            <input class="notes-area" id="obj_notes" placeholder="Внутрішні нотатки комісії, що не включаються до акта..." oninput="saveData()"></input>
+            <input class="notes-area" id="obj_notes" type="text" placeholder="Внутрішні нотатки комісії, що не включаються до акта..." oninput="saveData()"></input>
         </div>
     </div>
 
@@ -424,7 +421,6 @@
         <button class="add-btn" onclick="addEngZone()">+ ДОДАТИ ЗОНУ (ІНЖЕНЕРІЯ)</button>
     </div>
 
-    <!-- НОВА ВКЛАДКА: Зведена таблиця обсягів -->
     <div id="t-volumes" class="tab-content">
         <div class="smart-block" style="border-left-color: #8e44ad;">
             <h3 class="smart-title" style="color: #8e44ad;">📊 Зведена таблиця обсягів та сум</h3>
@@ -466,7 +462,6 @@
                 <button class="btn-blue" id="btn-checklist" onclick="generateWord('checklist')">📄 ЗГЕНЕРУВАТИ ЧЕК-ЛИСТ</button>
             </div>
             <hr style="margin: 30px 0; border: none; border-top: 1px solid #ddd;">
-            <!-- НОВЕ: Дублювати дані на новий об'єкт -->
             <button onclick="duplicateForNewObject()" style="background:#9b59b6; color:white; border:none; padding:10px 20px; font-size:14px; font-weight:bold; border-radius:6px; cursor:pointer; margin-right:10px;">📋 ДУБЛЮВАТИ (новий об'єкт)</button>
             <button class="btn-reset" onclick="resetData()">ОЧИСТИТИ ВСІ ДАНІ (Крім Комісії)</button>
         </div>
