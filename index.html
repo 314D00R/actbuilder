@@ -1,0 +1,1645 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <title>ActBuilder: Конструктор чеклистів єВідновлення</title>
+    
+    <script src="https://unpkg.com/docxtemplater@3.37.11/build/docxtemplater.js"></script>
+    <script src="https://unpkg.com/pizzip@3.1.4/dist/pizzip.js"></script>
+    <script src="https://unpkg.com/pizzip@3.1.4/dist/pizzip-utils.js"></script>
+    <script src="https://unpkg.com/file-saver@2.0.5/dist/FileSaver.min.js"></script>
+
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f0f2f5; color: #333; margin: 0; padding: 20px; padding-bottom: 120px; }
+        .container { max-width: 1100px; margin: 0 auto; background: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+        .main-tabs { display: flex; flex-wrap: wrap; margin-bottom: 20px; border-bottom: 3px solid #34495e; gap: 5px; }
+        .m-tab { padding: 12px 15px; cursor: pointer; font-weight: bold; color: #666; border: none; background: #ecf0f1; border-radius: 6px 6px 0 0; font-size: 14px; transition: 0.2s; }
+        .m-tab:hover { background: #bdc3c7; color: #2c3e50; }
+        .m-tab.active { background: #34495e; color: white; }
+        .tab-content { display: none; padding: 10px 0; animation: fadeIn 0.3s; }
+        .tab-content.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        .row { display: flex; gap: 15px; margin-bottom: 15px; align-items: flex-start; flex-wrap: wrap; }
+        .row > div { flex: 1; min-width: 200px; }
+        label { display: block; font-size: 13px; font-weight: bold; margin-bottom: 5px; color: #555; }
+        input[type="text"], input[type="number"], select { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; font-size: 14px; background: #fff; }
+        select { cursor: pointer; }
+        input:focus, select:focus { border-color: #3498db; outline: none; box-shadow: 0 0 5px rgba(52, 152, 219, 0.3); }
+        .smart-block { background: #f8f9fa; border: 1px solid #dcdde1; border-left: 4px solid #3498db; border-radius: 6px; padding: 20px; margin-bottom: 20px; }
+        .smart-title { font-size: 18px; color: #2c3e50; margin-top: 0; margin-bottom: 15px; border-bottom: 1px solid #eee; padding-bottom: 10px; }
+        .flex-calc { display: flex; align-items: center; gap: 10px; background: #e8f4f8; padding: 10px 15px; border-radius: 6px; margin-bottom: 15px; border: 1px dashed #bcdcff; flex-wrap: wrap; }
+        .flex-calc input { width: 100px; font-weight: bold; }
+        .flex-calc .area-result { width: 140px; background: #fff; border: 2px solid #3498db; color: #2980b9; }
+        .math-sign { font-size: 18px; font-weight: bold; color: #7f8c8d; }
+        .cb-grid { display: grid; grid-template-columns: 1fr; gap: 8px; }
+        .cb-label { display: flex; align-items: flex-start; font-size: 13px; cursor: pointer; background: white; padding: 12px; border: 1px solid #e1e8ed; border-radius: 6px; transition: 0.2s; margin: 0; }
+        .cb-label:hover { background: #f0f8ff; border-color: #3498db; }
+        .cb-label input[type="checkbox"] { margin-top: 2px; margin-right: 15px; transform: scale(1.3); cursor: pointer; flex-shrink: 0; }
+        .cb-label span { flex: 1; color: #2c3e50; font-weight: 500; }
+        .work-list { display: grid; grid-template-columns: 1fr; gap: 10px; }
+        .work-item { background: white; padding: 12px 15px; border: 1px solid #dcdde1; border-radius: 6px; display: flex; align-items: flex-start; gap: 15px; }
+        .work-item span { font-size: 13px; flex: 1; font-weight: 500; line-height: 1.5; color: #2c3e50; }
+        .work-item input { flex-shrink: 0; width: 100px; text-align: right; font-weight: bold; border: 1px solid #bdc3c7; padding: 8px; }
+        .add-btn { width: 100%; padding: 15px; background: #f8f9fa; border: 2px dashed #3498db; border-radius: 6px; cursor: pointer; font-size: 16px; font-weight: bold; color: #3498db; transition: 0.2s; margin-bottom: 20px;}
+        .add-btn:hover { background: #ebf5fb; }
+        .export-btns { display: flex; gap: 20px; justify-content: center; margin-top: 20px; }
+        .btn-green { background: #2ecc71; color: white; border: none; padding: 15px 30px; font-size: 16px; font-weight: bold; border-radius: 6px; cursor: pointer; transition: 0.2s; flex: 1; }
+        .btn-green:hover { background: #27ae60; box-shadow: 0 4px 10px rgba(39, 174, 96, 0.3); }
+        .btn-green:disabled { background: #95a5a6; cursor: not-allowed; box-shadow: none; }
+        .btn-blue { background: #3498db; color: white; border: none; padding: 15px 30px; font-size: 16px; font-weight: bold; border-radius: 6px; cursor: pointer; transition: 0.2s; flex: 1; }
+        .btn-blue:hover { background: #2980b9; box-shadow: 0 4px 10px rgba(52, 152, 219, 0.3); }
+        .btn-blue:disabled { background: #95a5a6; cursor: not-allowed; box-shadow: none; }
+        .btn-reset { background: #e74c3c; color: white; border: none; padding: 10px 20px; font-size: 14px; font-weight: bold; border-radius: 6px; cursor: pointer; margin-top: 30px; }
+        .master-total-box { position: fixed; bottom: 0; left: 0; right: 0; background: #2c3e50; color: #2ecc71; padding: 15px 40px; text-align: right; font-size: 24px; font-weight: bold; box-shadow: 0 -4px 15px rgba(0,0,0,0.2); z-index: 1000; border-top: 4px solid #27ae60; display: flex; justify-content: space-between; align-items: center; }
+        .master-total-box span { color: white; margin-left: 10px; }
+        .author-credit { font-size: 12px; color: #a2d9b5; font-weight: normal; text-align: left; line-height: 1.4; opacity: 0.8; }
+        .dynamic-list-item { background: #fff; border: 1px solid #ccc; padding: 15px; border-radius: 6px; margin-bottom: 10px; position: relative; }
+        .desc-input { width: 100%; margin-top: 10px; padding: 8px; border: 1px dashed #3498db; background: #fdfefe; border-radius: 4px; font-size: 13px; box-sizing: border-box; }
+        .grid-eng { display: grid; grid-template-columns: repeat(auto-fit, minmax(155px, 1fr)); gap: 8px; margin-top: 10px; }
+        .grid-eng div { background: #fff; padding: 5px 10px; border: 1px solid #ddd; border-radius: 4px; font-size: 12px; line-height: 1.4; }
+        .grid-eng input { width: 40px; padding: 4px; margin-left: 5px; font-weight: bold; text-align: center; }
+        .grid-eng-title { font-size: 12px; font-weight: bold; color: #34495e; margin: 10px 0 4px; padding: 4px 8px; background: #ecf0f1; border-radius: 4px; grid-column: 1/-1; }
+        .custom-opt { color: #2980b9; font-weight: bold; }
+        .custom-input-wrap { display: flex; gap: 6px; align-items: center; margin-top: 4px; }
+        .custom-input-wrap input { flex: 1; padding: 7px 10px; border: 2px solid #3498db; border-radius: 4px; font-size: 14px; background: #f0f8ff; }
+        .custom-input-wrap button { padding: 7px 12px; background: #3498db; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 14px; white-space: nowrap; }
+        .custom-input-wrap button:hover { background: #2980b9; }
+        .custom-input-wrap .btn-cancel { background: #bdc3c7; }
+        .custom-input-wrap .btn-cancel:hover { background: #95a5a6; }
+
+        /* ===== НОВІ СТИЛІ ===== */
+        /* Індикатор автозбереження */
+        .save-indicator { font-size: 11px; padding: 3px 8px; border-radius: 10px; font-weight: bold; transition: all 0.3s; }
+        .save-indicator.saved { background: #d5f5e3; color: #1e8449; }
+        .save-indicator.saving { background: #fef9e7; color: #b7950b; }
+        .save-indicator.error { background: #fadbd8; color: #922b21; }
+
+        /* fill-progress removed */
+
+        /* Панель обсягів */
+        .volumes-panel { background: #2c3e50; color: white; border-radius: 8px; padding: 15px; margin-bottom: 20px; }
+        .volumes-panel h4 { margin: 0 0 10px; font-size: 15px; color: #2ecc71; }
+        .volumes-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 8px; max-height: 300px; overflow-y: auto; }
+        .vol-item { background: rgba(255,255,255,0.08); border-radius: 4px; padding: 6px 10px; font-size: 12px; display: flex; justify-content: space-between; align-items: center; }
+        .vol-item span { color: #bdc3c7; }
+        .vol-item strong { color: #2ecc71; }
+        .vol-total-row { margin-top: 10px; padding-top: 10px; border-top: 1px solid rgba(255,255,255,0.2); display: flex; justify-content: space-between; align-items: center; font-size: 16px; font-weight: bold; }
+        .vol-total-row span { color: #ecf0f1; }
+        .vol-total-row strong { color: #2ecc71; font-size: 20px; }
+
+        /* Кнопка копіювання суми */
+        .copy-sum-btn { background: none; border: 1px solid #2ecc71; color: #2ecc71; padding: 5px 12px; border-radius: 4px; cursor: pointer; font-size: 12px; transition: 0.2s; margin-left: 10px; }
+        .copy-sum-btn:hover { background: #2ecc71; color: #2c3e50; }
+
+        /* Панель пошуку по вкладках */
+        .search-bar { width: 100%; padding: 10px 15px; border: 2px solid #3498db; border-radius: 6px; font-size: 15px; margin-bottom: 15px; box-sizing: border-box; }
+
+        /* Попередження про валідацію */
+        .validation-msg { background: #fef9e7; border: 1px solid #f39c12; border-radius: 6px; padding: 12px 16px; margin-bottom: 15px; font-size: 13px; color: #7d6608; display: none; }
+        .validation-msg.show { display: block; }
+        .validation-msg ul { margin: 5px 0 0 0; padding-left: 20px; }
+
+        /* Швидка навігація між зонами (кількісний бейдж на табах) */
+        .tab-badge { background: #e74c3c; color: white; border-radius: 10px; font-size: 10px; padding: 1px 5px; margin-left: 4px; vertical-align: middle; }
+
+        /* Sticky підсумок по поточній вкладці */
+        .tab-subtotal { background: #eafaf1; border: 1px solid #a9dfbf; border-radius: 6px; padding: 10px 15px; font-size: 14px; font-weight: bold; color: #1e8449; margin-bottom: 15px; display: none; }
+        .tab-subtotal.show { display: flex; justify-content: space-between; align-items: center; }
+
+        /* Tooltip */
+        [data-tip] { position: relative; cursor: help; }
+        [data-tip]::after { content: attr(data-tip); position: absolute; bottom: 125%; left: 50%; transform: translateX(-50%); background: #2c3e50; color: white; padding: 5px 10px; border-radius: 4px; font-size: 11px; white-space: nowrap; pointer-events: none; opacity: 0; transition: opacity 0.2s; z-index: 100; }
+        [data-tip]:hover::after { opacity: 1; }
+
+        /* Поле нотаток */
+        .notes-area { width: 100%; min-height: 80px; padding: 10px; border: 1px solid #ccc; border-radius: 4px; font-size: 13px; font-family: inherit; resize: vertical; box-sizing: border-box; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <!-- Рядок стану -->
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 8px;">
+        <div style="font-size: 13px; color: #666;">
+            <strong style="color: #2c3e50;">ActBuilder</strong> &nbsp;|&nbsp; єВідновлення
+        </div>
+        <div style="display: flex; align-items: center; gap: 10px;">
+            <span class="save-indicator saved" id="save-indicator">✓ Збережено</span>
+        </div>
+    </div>
+
+    <div class="main-tabs">
+        <button class="m-tab active" onclick="openMainTab('t-general')">1. Загальні дані</button>
+        <button class="m-tab" onclick="openMainTab('t-static')" style="color:#d35400;">2. Сталі дані (Комісія)</button>
+        <button class="m-tab" onclick="openMainTab('t-techpass')">3. Техпаспорт</button>
+        <button class="m-tab" onclick="openMainTab('t-roof')">4. Дах/Перекриття</button>
+        <button class="m-tab" onclick="openMainTab('t-windows')">5. Вікна/Двері</button>
+        <button class="m-tab" onclick="openMainTab('t-walls')">6. Стіни/Стеля</button>
+        <button class="m-tab" onclick="openMainTab('t-floors')">7. Підлоги</button>
+        <button class="m-tab" onclick="openMainTab('t-facade')">8. Фасад/Фунд.</button>
+        <button class="m-tab" onclick="openMainTab('t-eng')">9. Інженерія</button>
+        <button class="m-tab" onclick="openMainTab('t-volumes')">📊 Обсяги</button>
+        <button class="m-tab" onclick="openMainTab('t-export')" style="background: #27ae60; color: white;">10. Висновки/Експорт</button>
+    </div>
+
+    <!-- ====== ВСІ ВКЛАДКИ ====== -->
+
+    <div id="t-general" class="tab-content active">
+        <div class="smart-block">
+            <h3 class="smart-title">Основа документа</h3>
+            <div class="row" style="flex-wrap: nowrap;">
+                <div style="flex: 0 0 25%; min-width: 120px;"><label>Дата Акта</label><input type="text" id="act_date" placeholder="ДД.ММ.РРРР" oninput="saveData()"></div>
+                <div style="flex: 0 0 75%;"><label>Тип об'єкта (для Чеклиста)</label>
+                    <select id="object_type" onchange="checkCustom(this)">
+                        <option value="квартира в багатоквартирному житловому будинку, 1122.1">квартира в багатоквартирному житловому будинку, 1122.1</option>
+                        <option value="квартира в будинку підвищеної комфортності, 1122.2">квартира в будинку підвищеної комфортності, 1122.2</option>
+                        <option value="будинок садибного типу, 1110.3">будинок садибного типу, 1110.3</option>
+                        <option value="будинок дачний або садовий, 1110.4">будинок дачний або садовий, 1110.4</option>
+                        <option value="будівля органів державного та місцевого управління, 1220.1">будівля органів державного та місцевого управління, 1220.1</option>
+                        <option value="адміністративно-побутова будівля промислового підприємства, 1220.5">адміністративно-побутова будівля промислового підприємства, 1220.5</option>
+                        <option value="будівля для конторських та адміністративних цілей інша, 1220.9">будівля для конторських та адміністративних цілей інша, 1220.9</option>
+                        <option value="гуртожиток для робітників та службовців, 1130.1">гуртожиток для робітників та службовців, 1130.1</option>
+                        <option value="портова споруда морська, 2151.1">портова споруда морська, 2151.1</option>
+                        <option value="custom" class="custom-opt">✏ Вписати свій...</option>
+                    </select>
+                </div>
+            </div>
+            
+            <h3 class="smart-title" style="margin-top: 15px;">Адреса об'єкта</h3>
+            <div class="row">
+                <div><label>Місто/Село</label>
+                    <select id="addr_city" onchange="checkCustom(this)">
+                        <option value="м. Чорноморськ">м. Чорноморськ</option>
+                        <option value="сел. Олександрівка">сел. Олександрівка</option>
+                        <option value="с. Малодолинське">с. Малодолинське</option>
+                        <option value="с. Бурлача Балка">с. Бурлача Балка</option>
+                        <option value="custom" class="custom-opt">✏ Вписати своє...</option>
+                    </select>
+                </div>
+                <div><label>Тип вул.</label>
+                    <select id="addr_str_type" onchange="checkCustom(this)">
+                        <option value="вул. ">вул.</option>
+                        <option value="просп. ">просп.</option>
+                        <option value="пров. ">пров.</option>
+                        <option value="custom" class="custom-opt">✏ Вписати своє...</option>
+                    </select>
+                </div>
+                <div><label>Назва вулиці</label><input type="text" id="addr_street" placeholder="Парусна" oninput="saveData()"></div>
+            </div>
+            <div class="row">
+                <div><label>Будинок</label><input type="text" id="addr_house" placeholder="12" oninput="saveData()"></div>
+                <div><label>Квартира</label><input type="text" id="addr_apt" placeholder="-" oninput="saveData()"></div>
+                <div><label>Кадастровий номер (за наявності)</label><input type="text" id="cadastral" placeholder="-" oninput="saveData()"></div>
+            </div>
+            <div class="row">
+                <div><label>Форма власності</label>
+                    <select id="ownership_type" onchange="checkCustom(this)">
+                        <option value="приватна">приватна</option>
+                        <option value="державна">державна</option>
+                        <option value="комунальна">комунальна</option>
+                        <option value="custom" class="custom-opt">✏ Вписати своє...</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <div class="smart-block">
+            <h3 class="smart-title">Опитувальник по власникам</h3>
+            <div id="owners-container"></div>
+            <button class="add-btn" onclick="addOwner()">+ ДОДАТИ ВЛАСНИКА / УПРАВИТЕЛЯ</button>
+            
+            <h3 class="smart-title" style="margin-top: 20px;">Присутність та Заява</h3>
+            <div class="row">
+                <div><label>У присутності (введіть текст)</label><input type="text" id="present_manual" placeholder="власника Іванова І.І., управителя Петрова П.П." oninput="saveData()"></div>
+            </div>
+            <div class="row">
+                <div><label>На підставі заяви</label><input type="text" id="zayava_info" placeholder="власника Іванова І.І. від 13.02.2026 №123" oninput="saveData()"></div>
+            </div>
+        </div>
+
+        <div class="smart-block">
+            <h3 class="smart-title">Критерії оцінки (тільки для Чеклиста)</h3>
+            <div class="row">
+                <div><label>Пріоритетне право?</label><select id="q_1" onchange="saveData()"><option>ні</option><option>так</option></select></div>
+                <div><label>Проведено ремонт?</label><select id="q_2" onchange="saveData()"><option>ні</option><option>так</option></select></div>
+                <div><label>Вплив на несучу здатність?</label><select id="q_3" onchange="saveData()"><option>ні</option><option>так</option></select></div>
+            </div>
+        </div>
+
+        <!-- НОВЕ: Нотатки до об'єкта -->
+        <div class="smart-block">
+            <h3 class="smart-title">📝 Службові нотатки (не потрапляють в документ)</h3>
+            <textarea class="notes-area" id="obj_notes" placeholder="Внутрішні нотатки комісії, що не включаються до акта..." oninput="saveData()"></textarea>
+        </div>
+    </div>
+
+    <div id="t-static" class="tab-content">
+        <div class="smart-block" style="border-left-color: #d35400;">
+            <h2 style="color: #d35400; margin-top: 0; font-size: 20px;">УВАГА: Ці дані НЕ ВИДАЛЯЮТЬСЯ при натисканні "Очистити всі дані".</h2>
+            <p style="font-size: 14px; margin-bottom: 20px;">Вони зберігаються окремо. Заповніть їх один раз для своєї робочої групи.</p>
+            
+            <h3 class="smart-title">Рішення / Розпорядження</h3>
+            <div class="row">
+                <div><label>Рішення №</label><input type="text" id="order_no" placeholder="249" oninput="saveStatic()"></div>
+                <div><label>від (Дата)</label><input type="text" id="order_date" placeholder="08.09.2023" oninput="saveStatic()"></div>
+            </div>
+            <div class="row">
+                <div><label>Назва рішення (повна)</label><input type="text" id="order_name" value="«Про створення комісії з розгляду питань надання компенсації...»" oninput="saveStatic()"></div>
+            </div>
+            
+            <hr style="margin: 20px 0; border: 1px solid #ddd;">
+            <h3 class="smart-title">Текст в Акті (Називний і Родовий відмінки)</h3>
+            <div class="row">
+                <div><label>Голова (Називний: Хто?) - <i>для Шапки</i></label><input type="text" id="comm_head_nom" placeholder="Ігор Сурнін" oninput="saveStatic()"></div>
+                <div><label>Голова (Родовий: Кого?) - <i>для Тексту</i></label><input type="text" id="comm_head_gen" placeholder="Ігоря Сурніна" oninput="saveStatic()"></div>
+            </div>
+            <div class="row">
+                <div><label>Заступник (Родовий)</label><input type="text" id="comm_deputy" placeholder="Руслана Саїнчука" oninput="saveStatic()"></div>
+                <div><label>Секретар (Родовий)</label><input type="text" id="comm_sec" placeholder="Євгена Сологуба" oninput="saveStatic()"></div>
+            </div>
+            <div class="row">
+                <div><label>Члени комісії (Родовий, через кому)</label><input type="text" id="comm_members" placeholder="Ольги Субботкіної, Олени Липач..." oninput="saveStatic()"></div>
+            </div>
+
+            <hr style="margin: 20px 0; border: 1px solid #ddd;">
+            <h3 class="smart-title">Опитувальник по Підписах (для фінальної таблиці)</h3>
+            <div id="signatures-container"></div>
+            <button class="add-btn" onclick="addSignature()" style="border-color:#d35400; color:#d35400;">+ ДОДАТИ ПІДПИС КОМІСІЇ</button>
+        </div>
+    </div>
+
+    <div id="t-techpass" class="tab-content">
+        <div class="smart-block">
+            <h3 class="smart-title">Загальні характеристики будівлі</h3>
+            <div class="row">
+                <div><label>Пам'ятка спадщини</label><input type="text" id="heritage_info" value="відсутні" oninput="saveData()"></div>
+                <div><label>Рік будівництва</label><input type="text" id="year_built" placeholder="1990" oninput="saveData()"></div>
+                <div><label>Загальна площа (кв.м)</label><input type="text" id="total_area" placeholder="100" oninput="saveData()"></div>
+            </div>
+            <div class="row">
+                <div><label>Поверхів загалом</label><input type="text" id="floors_total" placeholder="9, квартира на 5 поверсі" value="1" oninput="saveData()"></div>
+                <div><label>Наземних</label><input type="text" id="floors_over" placeholder="1" oninput="saveData()"></div>
+                <div><label>Підземних</label><input type="text" id="floors_under" placeholder="відсутні" oninput="saveData()"></div>
+                <div><label>Мансардних</label><input type="text" id="mansard" placeholder="відсутні" oninput="saveData()"></div>
+            </div>
+            <div class="row">
+                <div><label>Кількість секцій</label><input type="text" id="sections" value="відсутні" oninput="saveData()"></div>
+                <div><label>Кількість квартир</label><input type="text" id="apartments" value="відсутні" oninput="saveData()"></div>
+                <div><label>Площа нежитлових (кв.м)</label><input type="text" id="built_in_area" value="0" oninput="saveData()"></div>
+            </div>
+            <div class="row">
+                <div><label>Правовстановлюючі док-ти (де лежать)</label><input type="text" id="legal_docs" placeholder="Витяг з реєстру... Зберігаються у власника." oninput="saveData()"></div>
+            </div>
+        </div>
+
+        <h3 class="smart-title">Конструктивні елементи (по Будівлях/Літерах)</h3>
+        <p style="font-size:13px; color:#555;">Оберіть варіант зі списку або натисніть "✏ Вписати свій...", щоб додати нестандартний матеріал.</p>
+        <div id="buildings-container"></div>
+        <button class="add-btn" onclick="addBuilding()">+ ДОДАТИ БУДІВЛЮ / ЛІТЕРУ</button>
+    </div>
+
+    <div id="t-roof" class="tab-content">
+        <div class="tab-subtotal" id="subtotal-roof"></div>
+        <h3 class="smart-title">Дах / Покрівля (Комплекс)</h3>
+        <div id="roof-container"></div>
+        <button class="add-btn" onclick="addZone('roof')">+ ДОДАТИ ЗОНУ (ДАХ)</button>
+
+        <h3 class="smart-title" style="margin-top: 30px;">Крокви (Погонні метри)</h3>
+        <div class="smart-block">
+            <div class="work-list">
+                <div class="work-item"><span>п.2. Заміна кроквяних ніг із брусів</span> <input type="number" class="single-inp" data-id="2" oninput="calcAll()"></div>
+            </div>
+            <input type="text" id="desc_roof_manual" class="desc-input" placeholder="Опис пошкодження крокв для Акта (якщо потрібно)" oninput="saveData()">
+        </div>
+
+        <h3 class="smart-title" style="margin-top: 30px;">Перекриття (Комплекс)</h3>
+        <div id="over-container"></div>
+        <button class="add-btn" onclick="addZone('over')">+ ДОДАТИ ЗОНУ (ПЕРЕКРИТТЯ)</button>
+    </div>
+
+    <div id="t-windows" class="tab-content">
+        <div class="tab-subtotal" id="subtotal-windows"></div>
+        <h3 class="smart-title">Калькулятор Вікон та Дверей</h3>
+        <p style="font-size:13px; color:#555; margin-top:0;">Додавайте сюди всі вікна і двері. Вписуйте ширину/висоту або відразу ПЛОЩУ вручну.</p>
+        <div id="windows-container"></div>
+        <button class="add-btn" onclick="addWindow()">+ ДОДАТИ ВІКНО / ДВЕРІ</button>
+    </div>
+
+    <div id="t-walls" class="tab-content">
+        <div class="tab-subtotal" id="subtotal-walls"></div>
+        <h3 class="smart-title">Стіни: Оздоблення (Пошаровий комплекс)</h3>
+        <div id="wall-container"></div>
+        <button class="add-btn" onclick="addZone('wall')">+ ДОДАТИ ЗОНУ (СТІНИ)</button>
+
+        <h3 class="smart-title" style="margin-top: 30px;">Стіни: Конструктивні роботи</h3>
+        <div class="smart-block">
+            <div class="work-list">
+                <div class="work-item" style="display:block;">
+                    <div style="display:flex; justify-content: space-between; align-items: flex-start; gap: 15px; margin-bottom: 5px;">
+                        <span style="flex:1;">п.20. Розбирання пошкоджених стін</span>
+                        <input type="number" class="single-inp" data-id="20" id="t_c20" oninput="calcAll()" style="flex-shrink:0;">
+                    </div>
+                    <div style="font-size:12px; color:#7f8c8d; margin-top: 5px;">Або рахувати: Д: <input type="number" id="l_c20" oninput="calcV('c20')" style="width:50px; padding:2px;"> × В: <input type="number" id="h_c20" oninput="calcV('c20')" style="width:50px; padding:2px;"> × Товщ: <input type="number" id="d_c20" oninput="calcV('c20')" style="width:50px; padding:2px;"> м</div>
+                </div>
+                <div class="work-item" style="display:block;">
+                    <div style="display:flex; justify-content: space-between; align-items: flex-start; gap: 15px; margin-bottom: 5px;">
+                        <span style="flex:1;">п.21. Мурування стін</span>
+                        <input type="number" class="single-inp" data-id="21" id="t_c21" oninput="calcAll()" style="flex-shrink:0;">
+                    </div>
+                    <div style="font-size:12px; color:#7f8c8d; margin-top: 5px;">Або рахувати: Д: <input type="number" id="l_c21" oninput="calcV('c21')" style="width:50px; padding:2px;"> × В: <input type="number" id="h_c21" oninput="calcV('c21')" style="width:50px; padding:2px;"> × Товщ: <input type="number" id="d_c21" oninput="calcV('c21')" style="width:50px; padding:2px;"> м</div>
+                </div>
+                <div class="work-item" style="display:block;">
+                    <div style="display:flex; justify-content: space-between; align-items: flex-start; gap: 15px; margin-bottom: 5px;">
+                        <span style="flex:1;">п.22. Мурування внутрішніх перегородок</span>
+                        <input type="number" class="single-inp" data-id="22" id="t_c22" oninput="calcAll()" style="flex-shrink:0;">
+                    </div>
+                    <div style="font-size:12px; color:#7f8c8d; margin-top: 5px;">Або рахувати: Д: <input type="number" id="l_c22" oninput="calcF('c22')" style="width:50px; padding:2px;"> × В: <input type="number" id="w_c22" oninput="calcF('c22')" style="width:50px; padding:2px;"> м</div>
+                </div>
+            </div>
+            <input type="text" id="desc_wall_manual" class="desc-input" placeholder="Опис пошкодження конструктиву стін (якщо потрібно)" oninput="saveData()">
+        </div>
+
+        <h3 class="smart-title" style="margin-top: 30px;">Стеля (Пошаровий комплекс)</h3>
+        <div id="ceil-container"></div>
+        <button class="add-btn" onclick="addZone('ceil')">+ ДОДАТИ ЗОНУ (СТЕЛЯ)</button>
+    </div>
+
+    <div id="t-floors" class="tab-content">
+        <div class="tab-subtotal" id="subtotal-floors"></div>
+        <h3 class="smart-title">Підлоги (Пошаровий комплекс)</h3>
+        <div id="flr-container"></div>
+        <button class="add-btn" onclick="addZone('flr')">+ ДОДАТИ ЗОНУ (ПІДЛОГА)</button>
+
+        <h3 class="smart-title" style="margin-top: 30px;">Окремі роботи по підлозі (Погонні метри)</h3>
+        <div class="smart-block">
+            <div class="work-list">
+                <div class="work-item"><span>п.43. Заміна окремих дощок у підлогах</span> <input type="number" class="single-inp" data-id="43" oninput="calcAll()"></div>
+            </div>
+            <input type="text" id="desc_flr_manual" class="desc-input" placeholder="Опис пошкодження підлоги для Акта (якщо потрібно)" oninput="saveData()">
+        </div>
+    </div>
+
+    <div id="t-facade" class="tab-content">
+        <div class="tab-subtotal" id="subtotal-facade"></div>
+        <h3 class="smart-title">Фасад (Пошаровий комплекс)</h3>
+        <div id="fac-container"></div>
+        <button class="add-btn" onclick="addZone('fac')">+ ДОДАТИ ЗОНУ (ФАСАД)</button>
+
+        <h3 class="smart-title" style="margin-top: 30px;">Фундаменти та Вимощення (Комплекс)</h3>
+        <div id="fnd-container"></div>
+        <button class="add-btn" onclick="addZone('fnd')">+ ДОДАТИ ЗОНУ (ФУНДАМЕНТ)</button>
+    </div>
+
+    <div id="t-eng" class="tab-content">
+        <div class="tab-subtotal" id="subtotal-eng"></div>
+        <h3 class="smart-title">Інженерні мережі та Сантехніка (Динамічні зони)</h3>
+        <div id="eng-container"></div>
+        <button class="add-btn" onclick="addEngZone()">+ ДОДАТИ ЗОНУ (ІНЖЕНЕРІЯ)</button>
+    </div>
+
+    <!-- НОВА ВКЛАДКА: Зведена таблиця обсягів -->
+    <div id="t-volumes" class="tab-content">
+        <div class="smart-block" style="border-left-color: #8e44ad;">
+            <h3 class="smart-title" style="color: #8e44ad;">📊 Зведена таблиця обсягів та сум</h3>
+            <p style="font-size: 13px; color: #666; margin-top: -10px;">Всі позиції з ненульовими обсягами. Оновлюється автоматично.</p>
+            <div id="volumes-table-wrap"></div>
+        </div>
+    </div>
+
+    <div id="t-export" class="tab-content">
+        <div class="smart-block">
+            <h3 class="smart-title">Висновки для Акта</h3>
+            <div class="row">
+                <div><label>Орієнтовна дата пошкодження</label><input type="text" id="dam_date" placeholder="в ніч 12.02.2026" oninput="saveData()"></div>
+                <div><label>Ймовірні причини</label><input type="text" id="dam_reason" value="вибухова хвиля внаслідок атаки ударних БПЛА Російської Федерації" oninput="saveData()"></div>
+            </div>
+            <div class="row">
+                <div><label>Висновки комісії</label><input type="text" id="conclusions" value="Для визначення збитків потрібно замовити звіт..." oninput="saveData()"></div>
+            </div>
+            <div class="row">
+                <div><label>Інша додаткова інформація (авто, обладнання)</label><input type="text" id="extra_info" placeholder="-" oninput="saveData()"></div>
+            </div>
+            <div class="row">
+                <div style="max-width: 220px;"><label>Кількість аркушів з фото</label>
+                    <input type="number" id="photo_pages" min="0" placeholder="0" oninput="saveData()" style="font-weight:bold;">
+                </div>
+            </div>
+        </div>
+
+        <div class="validation-msg" id="validation-msg">
+            <strong>⚠ Перевірте перед генерацією:</strong>
+            <ul id="validation-list"></ul>
+        </div>
+
+        <div class="smart-block" style="text-align: center; border-color: #27ae60;">
+            <h2 style="color: #27ae60; margin-top: 0; font-size: 28px;">Фінальний крок</h2>
+            <p style="font-size: 16px; margin-bottom: 20px;">Оберіть документ, який бажаєте згенерувати.</p>
+            <div class="export-btns">
+                <button class="btn-blue" id="btn-checklist" onclick="generateWord('checklist')">📄 ЗГЕНЕРУВАТИ ЧЕК-ЛИСТ</button>
+                <button class="btn-green" id="btn-act" onclick="generateWord('act')">📝 ЗГЕНЕРУВАТИ АКТ</button>
+            </div>
+            <hr style="margin: 30px 0; border: none; border-top: 1px solid #ddd;">
+            <!-- НОВЕ: Дублювати дані на новий об'єкт -->
+            <button onclick="duplicateForNewObject()" style="background:#9b59b6; color:white; border:none; padding:10px 20px; font-size:14px; font-weight:bold; border-radius:6px; cursor:pointer; margin-right:10px;">📋 ДУБЛЮВАТИ (новий об'єкт)</button>
+            <button class="btn-reset" onclick="resetData()">ОЧИСТИТИ ВСІ ДАНІ (Крім Комісії)</button>
+        </div>
+    </div>
+
+</div>
+
+<div class="master-total-box">
+    <div class="author-credit">Розроблено by Volodymyr Korchma<br>korchmavova@gmail.com</div>
+    <div style="display:flex; align-items: center; gap: 10px;">
+        ЗАГАЛЬНА СУМА: <span id="master_total">0,00</span> грн
+        <button class="copy-sum-btn" onclick="copySum()" data-tip="Копіювати суму">📋</button>
+    </div>
+</div>
+
+<script>
+    const DB = {
+        1: 596.72, 2: 915.02, 3: 2134.19, 4: 3006.21, 5: 3203.49,
+        6: 12812.23, 7: 31220.00, 8: 4192.67, 9: 6127.62, 10: 1844.08,
+        11: 4030.17, 12: 3020.71, 13: 929.04, 14: 865.20, 15: 149.13,
+        16: 688.73, 17: 2162.66, 18: 1392.55, 19: 1738.80, 20: 3322.94,
+        21: 8499.30, 22: 1379.81, 23: 118.41, 24: 661.70, 25: 301.52,
+        26: 314.83, 27: 138.13, 28: 1365.85, 29: 833.86, 30: 778.12,
+        31: 1472.45, 32: 372.60, 33: 147.92, 34: 1447.36, 35: 137.26,
+        36: 941.30, 37: 480.55, 38: 976.32, 39: 846.56, 40: 2069.53,
+        41: 268.75, 42: 423.38, 43: 274.93, 44: 1213.51, 45: 238.51,
+        '46_1': 5725.22, '46_2': 5725.22, '46_3': 5725.22, '46_4': 5725.22, '46_5': 5725.22,
+        47: 4412.18, 48: 6482.32, 49: 4739.26, 50: 7195.96, 51: 5719.19,
+        52: 2583.95, 53: 3059.30, 54: 1945.03, 55: 9433.26, 56: 9420.55,
+        57: 45865.00, 58: 41.47, 59: 118.84, 60: 5639.22, 61: 693.61,
+        62: 4095.34, 63: 1256.44, 64: 1137.70, 65: 65.03
+    };
+
+    const DB_LABELS = {
+        1: 'п.1 Локально шифер/черепиця (м²)', 2: 'п.2 Заміна кроквяних ніг (пм)',
+        3: 'п.3 Заміна покрівлі без крокв (м²)', 4: 'п.4 З кроквами до 25% (м²)', 5: 'п.5 З кроквами >25% (м²)',
+        6: 'п.6 Двері міжкімнатні (шт)', 7: 'п.7 Двері вхідні метал. (шт)',
+        8: 'п.8 Вікно: тільки скло (м²)', 9: 'п.9 Вікно: рама (м²)', 10: 'п.10 Укоси штукатурка (м²)',
+        11: 'п.11 Укоси фасад (м²)', 12: 'п.12 Фасад з утепленням (м²)', 14: 'п.14 Штукатурення без утеплення (м²)',
+        15: 'п.15 Фасад фарбування (м²)', 16: 'п.16 Розбирання дерев. перекриття (м²)',
+        17: 'п.17 Влаштування дерев. перекриття (м²)', 18: 'п.18 Розбирання з/б перекриття (м²)',
+        19: 'п.19 Відновлення з/б перекриття (м²)', 20: 'п.20 Розбирання стін (м³)',
+        21: 'п.21 Мурування стін (м³)', 22: 'п.22 Мурування перегородок (м²)',
+        23: 'п.23 Відбивання штукатурки стін (м²)', 24: 'п.24 Штукатурення стін (м²)',
+        25: 'п.25 Підготовка стелі (м²)', 26: 'п.26 Фарбування стін (м²)', 27: 'п.27 Шпалери стіни (м²)',
+        28: 'п.28 Плитка стіни (м²)', 29: 'п.29 Гіпсокартон фальшстіни (м²)',
+        30: 'п.30 Укоси гіпсокартон (м²)', 32: 'п.32 Фарбування стеля (м²)', 33: 'п.33 Шпалери стеля (м²)',
+        34: 'п.34 Підвісні/натяжні стеля (м²)', 35: 'п.35 Розбирання стяжки (м²)',
+        36: 'п.36 Гідроізоляція підлога (м²)', 37: 'п.37 Стяжка цементна (м²)',
+        38: 'п.38 Плитка підлога (м²)', 39: 'п.39 Ламінат (м²)', 41: 'п.41 Стяжка самовирівнювальна (м²)',
+        42: 'п.42 Лінолеум (м²)', 43: 'п.43 Заміна окремих дощок (пм)', 44: 'п.44 Відновлення дощатих (м²)',
+        '46_1': 'п.46.1 Водопровід (місць)', '46_2': 'п.46.2 Каналізація (місць)',
+        '46_3': 'п.46.3 Опалення (місць)', '46_4': 'п.46.4 Газопостачання (місць)',
+        '46_5': 'п.46.5 Електропостачання (місць)', 47: 'п.47 Унітаз з бачком (шт)',
+        48: 'п.48 Умивальник зі змішувачем (шт)', 49: 'п.49 Умивальник без змішувача (шт)',
+        50: 'п.50 Ванна купальна (шт)', 51: 'п.51 Піддон душовий (шт)',
+        52: 'п.52 Змішувач з душем (шт)', 53: 'п.53 Мийка кухонна (шт)',
+        54: 'п.54 Змішувач кухонний (шт)', 55: 'п.55 Бойлер (шт)', 56: 'п.56 Колонка газова (шт)',
+        57: 'п.57 Котел двоконтурний (шт)', 58: 'п.58 Вентил./димохідні (пм)',
+        59: 'п.59 Каналізаційна мережа (пм)', 60: 'п.60 Захисний шар фундаментів (м²)',
+        61: 'п.61 Гідроізоляція фундамент (м²)', 63: 'п.63 Вимощення асфальтне (м²)',
+        64: 'п.64 Вимощення бетонне (м²)'
+    };
+
+    const checklistBase64 = "ТУТ_КОД_ЧЕКЛИСТА"; 
+    const actBase64 = "ТУТ_КОД_АКТА"; 
+
+    let volumes = {}; 
+    let windowCount = 0, bldCount = 0, ownerCount = 0, signCount = 0, engCount = 0;
+    let zoneCounts = { roof: 0, over: 0, wall: 0, ceil: 0, flr: 0, fac: 0, fnd: 0 };
+
+    let _calcTimer = null;
+    let _saveTimer = null;
+
+    function calcAll() {
+        clearTimeout(_calcTimer);
+        _calcTimer = setTimeout(_calcAllNow, 80);
+    }
+    function saveData() {
+        setSaveIndicator('saving');
+        clearTimeout(_saveTimer);
+        _saveTimer = setTimeout(_saveDataNow, 300);
+    }
+
+    // ===== НОВЕ: Індикатор збереження =====
+    function setSaveIndicator(state) {
+        const el = document.getElementById('save-indicator');
+        if (!el) return;
+        el.className = 'save-indicator ' + state;
+        el.textContent = state === 'saving' ? '⏳ Збереження...' : state === 'error' ? '✗ Помилка!' : '✓ Збережено';
+    }
+
+    // ===== НОВЕ: Копіювання суми =====
+    function copySum() {
+        const sum = document.getElementById('master_total').innerText;
+        navigator.clipboard.writeText(sum + ' грн').then(() => {
+            const btn = document.querySelector('.copy-sum-btn');
+            const orig = btn.textContent;
+            btn.textContent = '✓';
+            setTimeout(() => btn.textContent = orig, 1500);
+        });
+    }
+
+    // ===== Дублювати для нового об'єкта =====
+    function duplicateForNewObject() {
+        if (!confirm('Підготувати форму для нового об\'єкта?\n\nБудуть очищені:\n• Адреса та дані власника\n• Дата акта, заява, присутність\n• Всі площі, розміри та описи пошкоджень\n• Висновки\n\nЗалишаться:\n• Конструктив будівель (Техпаспорт)\n• Сталі дані комісії')) return;
+
+        // Очищуємо адресу та загальні поля
+        const clearIds = ['act_date','addr_street','addr_house','addr_apt','cadastral','present_manual','zayava_info','dam_date','dam_reason','conclusions','extra_info','photo_pages','obj_notes'];
+        clearIds.forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
+
+        // Скидаємо власників
+        document.getElementById('owners-container').innerHTML = '';
+        ownerCount = 0;
+        addOwner();
+
+        // Очищуємо всі ЗОНИ: площі, розміри, чекбокси, описи
+        document.querySelectorAll('.zone-block').forEach(block => {
+            const type = block.dataset.type, id = block.dataset.id;
+            const lEl = document.getElementById(`l_${type}_${id}`); if (lEl) lEl.value = '';
+            const wEl = document.getElementById(`w_${type}_${id}`) || document.getElementById(`h_${type}_${id}`); if (wEl) wEl.value = '';
+            const resEl = document.getElementById(`res_${type}_${id}`); if (resEl) resEl.value = '';
+            const qEl = document.getElementById(`q_${type}_${id}`); if (qEl) qEl.value = '1';
+            const descEl = document.getElementById(`desc_${type}_${id}`); if (descEl) descEl.value = '';
+            const nameEl = document.getElementById(`name_${type}_${id}`); if (nameEl) nameEl.value = '';
+            block.querySelectorAll('input[type="checkbox"]').forEach(cb => cb.checked = false);
+        });
+
+        // Очищуємо вікна/двері
+        document.querySelectorAll('.win-block').forEach(block => {
+            const id = block.dataset.id;
+            ['w_','h_','d_','res_w_','res_s_'].forEach(prefix => { const el = document.getElementById(prefix + id); if(el) el.value = prefix === 'd_' ? '0.3' : ''; });
+            const qEl = document.getElementById(`q-win-${id}`); if(qEl) qEl.value = '1';
+            const descEl = document.getElementById(`desc_win_${id}`); if(descEl) descEl.value = '';
+            const nameEl = document.getElementById(`name_win_${id}`); if(nameEl) nameEl.value = '';
+        });
+
+        // Очищуємо поля ручного вводу (крокви, стіни конструктив, підлога пм)
+        document.querySelectorAll('.single-inp').forEach(el => el.value = '');
+        ['desc_roof_manual','desc_wall_manual','desc_flr_manual'].forEach(id => { const el = document.getElementById(id); if(el) el.value = ''; });
+        ['l_c20','h_c20','d_c20','t_c20','l_c21','h_c21','d_c21','t_c21','l_c22','w_c22','t_c22'].forEach(id => { const el = document.getElementById(id); if(el) el.value = ''; });
+
+        // Очищуємо інженерію
+        document.querySelectorAll('.eng-block').forEach(block => {
+            const id = block.dataset.id;
+            ['46_1','46_2','46_3','46_4','46_5','47','48','49','50','51','52','53','54','55','56','57','58','59'].forEach(code => {
+                const el = document.getElementById(`e_${code}_${id}`); if(el) el.value = '';
+            });
+            const descEl = document.getElementById(`desc_eng_${id}`); if(descEl) descEl.value = '';
+            const nameEl = document.getElementById(`name_eng_${id}`); if(nameEl) nameEl.value = '';
+        });
+
+        populateDefaults();
+        calcAll();
+        alert('Форму очищено. Заповніть адресу та дані власника для нового об\'єкта.');
+    }
+
+    // fill progress removed
+
+    // ===== НОВЕ: Підсумок по вкладці =====
+    function updateTabSubtotals() {
+        const tabMaps = {
+            'subtotal-roof': [1,2,3,4,5,16,17,18,19],
+            'subtotal-windows': [6,7,8,9,10,30],
+            'subtotal-walls': [20,21,22,23,24,25,26,27,28,29,32,33,34],
+            'subtotal-floors': [35,36,37,38,39,41,42,43,44],
+            'subtotal-facade': [11,12,14,15,60,61,63,64],
+            'subtotal-eng': ['46_1','46_2','46_3','46_4','46_5',47,48,49,50,51,52,53,54,55,56,57,58,59]
+        };
+        for (const [elId, keys] of Object.entries(tabMaps)) {
+            const el = document.getElementById(elId);
+            if (!el) continue;
+            let sub = 0;
+            keys.forEach(k => { if (volumes[k] && DB[k]) sub += volumes[k] * DB[k]; });
+            if (sub > 0) {
+                el.className = 'tab-subtotal show';
+                el.innerHTML = `<span>Підсумок по розділу:</span><strong>${formatSum(sub)} грн</strong>`;
+            } else {
+                el.className = 'tab-subtotal';
+            }
+        }
+    }
+
+    // ===== НОВЕ: Зведена таблиця обсягів =====
+    function updateVolumesTable() {
+        const wrap = document.getElementById('volumes-table-wrap');
+        if (!wrap) return;
+        const entries = Object.entries(volumes).filter(([k, v]) => v > 0 && DB[k]);
+        if (entries.length === 0) {
+            wrap.innerHTML = '<p style="color:#888; font-size:14px;">Поки немає жодного обсягу. Заповніть вкладки з пошкодженнями.</p>';
+            return;
+        }
+        let html = `<table style="width:100%; border-collapse: collapse; font-size: 13px;">
+            <thead><tr style="background: #34495e; color: white;">
+                <th style="padding: 8px 12px; text-align: left;">Позиція</th>
+                <th style="padding: 8px 12px; text-align: right;">Обсяг</th>
+                <th style="padding: 8px 12px; text-align: right;">Ціна/од</th>
+                <th style="padding: 8px 12px; text-align: right;">Сума, грн</th>
+            </tr></thead><tbody>`;
+        let total = 0;
+        entries.forEach(([k, v], i) => {
+            const price = DB[k];
+            const sum = v * price;
+            total += sum;
+            const bg = i % 2 === 0 ? '#f8f9fa' : '#fff';
+            html += `<tr style="background:${bg};">
+                <td style="padding: 7px 12px; color: #2c3e50;">${DB_LABELS[k] || 'п.' + k}</td>
+                <td style="padding: 7px 12px; text-align: right; font-weight: bold; color: #2980b9;">${parseFloat(v).toFixed(2)}</td>
+                <td style="padding: 7px 12px; text-align: right; color: #666;">${formatSum(price)}</td>
+                <td style="padding: 7px 12px; text-align: right; font-weight: bold; color: #27ae60;">${formatSum(sum)}</td>
+            </tr>`;
+        });
+        html += `</tbody><tfoot><tr style="background: #2c3e50; color: white;">
+            <td colspan="3" style="padding: 10px 12px; font-weight: bold; font-size: 15px;">ЗАГАЛЬНА СУМА:</td>
+            <td style="padding: 10px 12px; text-align: right; font-weight: bold; font-size: 16px; color: #2ecc71;">${formatSum(total)} грн</td>
+        </tr></tfoot></table>`;
+        wrap.innerHTML = html;
+    }
+
+    // ===== ВАЛІДАЦІЯ: обов'язкові + нагадування =====
+    function validateForm() {
+        const errors = [];    // блокуючі — обов'язкові
+        const warnings = [];  // нагадування — не блокуючі
+
+        // === ОБОВ'ЯЗКОВІ (адреса та власник) ===
+        const cityVal = document.getElementById('addr_city')?.value;
+        if (!cityVal || cityVal === 'custom') errors.push('Місто/Село — не заповнено');
+
+        const strTypeVal = document.getElementById('addr_str_type')?.value;
+        if (!strTypeVal || strTypeVal === 'custom') errors.push('Тип вулиці — не обрано');
+
+        if (!document.getElementById('addr_street')?.value.trim()) errors.push('Назва вулиці — не заповнена');
+        if (!document.getElementById('addr_house')?.value.trim()) errors.push('Будинок — не заповнений');
+
+        // Власник: хоча б один з заповненим ПІБ
+        let ownerHasName = false;
+        document.querySelectorAll('[id^="owner-block"]').forEach(b => {
+            const id = b.id.split('-')[2];
+            const nameEl = document.getElementById(`ow_name_${id}`);
+            if (nameEl && nameEl.value.trim()) ownerHasName = true;
+        });
+        if (!ownerHasName) errors.push('ПІБ / Назва компанії власника — не заповнено');
+
+        // === НАГАДУВАННЯ — вкладка 1 (всі крім нотатків) ===
+        if (!document.getElementById('act_date')?.value.trim()) warnings.push('Дата Акта — залишилась незаповненою, перевірте');
+        if (!document.getElementById('addr_apt')?.value.trim() && !document.getElementById('addr_apt')?.placeholder.includes('-')) {
+            // квартира — не критично, але нагадуємо лише якщо поле взагалі порожнє
+        }
+        if (!document.getElementById('cadastral')?.value.trim()) warnings.push('Кадастровий номер — залишився незаповненим, перевірте');
+
+        // Власник — паспортні дані
+        document.querySelectorAll('[id^="owner-block"]').forEach(b => {
+            const id = b.id.split('-')[2];
+            const nameEl = document.getElementById(`ow_name_${id}`);
+            const name = nameEl ? nameEl.value.trim() : '';
+            if (!name) return;
+            if (!document.getElementById(`ow_doc_${id}`)?.value.trim()) warnings.push(`Власник ${name}: поле "Паспорт/ЄДРПОУ" — залишилось незаповненим, перевірте`);
+            if (!document.getElementById(`ow_rnokpp_${id}`)?.value.trim()) warnings.push(`Власник ${name}: поле "РНОКПП" — залишилось незаповненим, перевірте`);
+        });
+
+        if (!document.getElementById('present_manual')?.value.trim()) warnings.push('"У присутності" — залишилось незаповненим, перевірте');
+        if (!document.getElementById('zayava_info')?.value.trim()) warnings.push('"На підставі заяви" — залишилось незаповненим, перевірте');
+
+        // === НАГАДУВАННЯ — Комісія (Сталі дані) ===
+        if (!document.getElementById('comm_head_nom')?.value.trim()) warnings.push('Голова комісії (Називний) — залишився незаповненим, перевірте');
+        if (!document.getElementById('comm_head_gen')?.value.trim()) warnings.push('Голова комісії (Родовий) — залишився незаповненим, перевірте');
+        if (!document.getElementById('order_no')?.value.trim()) warnings.push('Номер рішення/розпорядження — залишився незаповненим, перевірте');
+
+        let signHasName = false;
+        document.querySelectorAll('[id^="sign-block-"]').forEach(b => {
+            const id = b.id.split('-')[2];
+            if (document.getElementById(`sign_name_${id}`)?.value.trim()) signHasName = true;
+        });
+        if (!signHasName) warnings.push('Підписи комісії (вкладка "Сталі дані") — жодного підпису не додано, перевірте');
+
+        // === НАГАДУВАННЯ — Техпаспорт ===
+        if (!document.getElementById('year_built')?.value.trim()) warnings.push('Рік будівництва — залишився незаповненим, перевірте');
+        if (!document.getElementById('total_area')?.value.trim()) warnings.push('Загальна площа — залишилась незаповненою, перевірте');
+        if (!document.getElementById('floors_total')?.value.trim()) warnings.push('Поверхів загалом — залишилось незаповненим, перевірте');
+        if (!document.getElementById('legal_docs')?.value.trim()) warnings.push('Правовстановлюючі документи — залишились незаповненими, перевірте');
+
+        // Конструктивні елементи: хоч одна будівля з хоч одним заповненим полем
+        let bldFilled = false;
+        document.querySelectorAll('.bld-block').forEach(b => {
+            const id = b.dataset.id;
+            ['fnd','wall','in_wall','roof'].forEach(prop => {
+                const el = document.getElementById(`bld_${prop}_${id}`);
+                if (el && el.value && el.value !== '-') bldFilled = true;
+            });
+        });
+        if (!bldFilled) warnings.push('Конструктивні елементи (вкладка "Техпаспорт") — не заповнені, перевірте');
+
+        // === НАГАДУВАННЯ — Висновки ===
+        if (!document.getElementById('dam_date')?.value.trim()) warnings.push('Орієнтовна дата пошкодження — залишилась незаповненою, перевірте');
+        if (!document.getElementById('dam_reason')?.value.trim()) warnings.push('Ймовірні причини пошкодження — залишились незаповненими, перевірте');
+        if (!document.getElementById('conclusions')?.value.trim()) warnings.push('Висновки комісії — залишились незаповненими, перевірте');
+
+        // Рендер
+        const msgEl = document.getElementById('validation-msg');
+        const listEl = document.getElementById('validation-list');
+        let html = '';
+        if (errors.length > 0) {
+            html += `<div style="margin-bottom:8px; color:#922b21; font-weight:bold;">🚫 Обов'язкові поля не заповнені — генерація неможлива:</div>`;
+            html += errors.map(e => `<li style="color:#922b21; margin-bottom:3px;">${e}</li>`).join('');
+        }
+        if (warnings.length > 0) {
+            html += `<div style="margin: ${errors.length > 0 ? '12px' : '0'} 0 8px; color:#7d6608; font-weight:bold;">⚠ Нагадування (не блокують генерацію):</div>`;
+            html += warnings.map(w => `<li style="color:#7d6608; margin-bottom:3px;">${w}</li>`).join('');
+        }
+        if (errors.length > 0 || warnings.length > 0) {
+            listEl.innerHTML = html;
+            msgEl.classList.add('show');
+        } else {
+            msgEl.classList.remove('show');
+        }
+        return errors.length === 0;
+    }
+
+    function checkCustom(sel) {
+        if (sel.value === 'custom') {
+            sel.selectedIndex = 0;
+            let existing = sel.parentNode.querySelector('.custom-input-wrap');
+            if (existing) return;
+            let wrap = document.createElement('div');
+            wrap.className = 'custom-input-wrap';
+            wrap.innerHTML = '<input type="text" placeholder="Впишіть свій варіант..." /><button onclick="applyCustom(this)">✓ Додати</button><button class="btn-cancel" onclick="cancelCustom(this)">✕</button>';
+            sel.parentNode.appendChild(wrap);
+            wrap.querySelector('input').focus();
+            wrap.querySelector('input').addEventListener('keydown', function(e) {
+                if (e.key === 'Enter') applyCustom(wrap.querySelector('button'));
+                if (e.key === 'Escape') cancelCustom(wrap.querySelector('.btn-cancel'));
+            });
+        } else {
+            saveData();
+        }
+    }
+
+    function applyCustom(btn) {
+        let wrap = btn.closest('.custom-input-wrap');
+        let sel = wrap.parentNode.querySelector('select');
+        let val = wrap.querySelector('input').value.trim();
+        if (val !== '') {
+            let opt = document.createElement('option');
+            opt.value = val;
+            opt.innerHTML = val;
+            sel.insertBefore(opt, sel.lastElementChild);
+            sel.value = val;
+        } else {
+            sel.selectedIndex = 0;
+        }
+        wrap.remove();
+        saveData();
+    }
+
+    function cancelCustom(btn) {
+        let wrap = btn.closest('.custom-input-wrap');
+        let sel = wrap.parentNode.querySelector('select');
+        sel.selectedIndex = 0;
+        wrap.remove();
+    }
+
+    function setSelectValue(sel, val) {
+        if(!sel || val === undefined || val === null) return;
+        let exists = false;
+        for(let i=0; i<sel.options.length; i++) {
+            if(sel.options[i].value === val) { exists = true; break; }
+        }
+        if(!exists && val !== '') {
+            let opt = document.createElement('option');
+            opt.value = val;
+            opt.innerHTML = val;
+            sel.insertBefore(opt, sel.lastElementChild);
+        }
+        sel.value = val;
+    }
+
+    function formatSum(num) {
+        let rounded = Math.round(num * 100) / 100;
+        return rounded.toLocaleString('uk-UA', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    }
+
+    function openMainTab(tabId) {
+        document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+        document.querySelectorAll('.m-tab').forEach(el => el.classList.remove('active'));
+        document.getElementById(tabId).classList.add('active');
+        document.querySelector(`.m-tab[onclick*="${tabId}"]`).classList.add('active');
+        updateBuildingDropdowns();
+        // Оновити таблицю обсягів при переході на вкладку
+        if (tabId === 't-volumes') updateVolumesTable();
+        if (tabId === 't-export') {
+            validateForm();
+        }
+    }
+
+    function calcF(idPrefix) {
+        const l = parseFloat(document.getElementById('l_' + idPrefix).value) || 0;
+        const w = parseFloat((document.getElementById('w_' + idPrefix) || document.getElementById('h_' + idPrefix)).value) || 0;
+        document.getElementById('t_' + idPrefix).value = (l > 0 && w > 0) ? (l * w).toFixed(2) : '';
+        calcAll();
+    }
+
+    function calcV(idPrefix) {
+        const l = parseFloat(document.getElementById('l_' + idPrefix).value) || 0;
+        const h = parseFloat(document.getElementById('h_' + idPrefix).value) || 0;
+        const d = parseFloat(document.getElementById('d_' + idPrefix).value) || 0;
+        document.getElementById('t_' + idPrefix).value = (l > 0 && h > 0 && d > 0) ? (l * h * d).toFixed(2) : '';
+        calcAll();
+    }
+
+    function addOwner() {
+        ownerCount++;
+        const html = `
+            <div class="dynamic-list-item" id="owner-block-${ownerCount}">
+                <button onclick="document.getElementById('owner-block-${ownerCount}').remove(); saveData();" style="position:absolute; right:10px; top:10px; color:#e74c3c; border:none; background:none; cursor:pointer; font-weight:bold;">✖</button>
+                <div class="row" style="margin-bottom:10px;">
+                    <div><label>Тип</label>
+                        <select id="ow_type_${ownerCount}" onchange="saveData()">
+                            <option value="власник">Власник (Фіз)</option>
+                            <option value="співвласник">Співвласник (Фіз)</option>
+                            <option value="управитель">Управитель (Фіз)</option>
+                            <option value="юридична особа">Юридична особа</option>
+                        </select>
+                    </div>
+                    <div><label>ПІБ / Назва компанії</label><input type="text" id="ow_name_${ownerCount}" placeholder="Іванов І.І." oninput="saveData()"></div>
+                </div>
+                <div class="row" style="margin-bottom:0;">
+                    <div><label>Паспорт / ЄДРПОУ</label><input type="text" id="ow_doc_${ownerCount}" placeholder="СЕ 123456" oninput="saveData()"></div>
+                    <div><label>Ким виданий</label><input type="text" id="ow_org_${ownerCount}" value="Іллічівським МВ ГУМВС України в Одеській обл." oninput="saveData()"></div>
+                    <div><label>Дата видачі</label><input type="text" id="ow_pass_date_${ownerCount}" placeholder="12.12.2012" oninput="saveData()"></div>
+                    <div><label>РНОКПП</label><input type="text" id="ow_rnokpp_${ownerCount}" placeholder="123456789" oninput="saveData()"></div>
+                </div>
+            </div>`;
+        document.getElementById('owners-container').insertAdjacentHTML('beforeend', html);
+        saveData();
+    }
+
+    let _loadingStatic = false;
+
+    function addSignature() {
+        signCount++;
+        const html = `
+            <div class="dynamic-list-item" id="sign-block-${signCount}" style="padding:10px;">
+                <button onclick="document.getElementById('sign-block-${signCount}').remove(); saveStatic();" style="position:absolute; right:10px; top:10px; color:#e74c3c; border:none; background:none; cursor:pointer; font-weight:bold;">✖</button>
+                <div class="row" style="margin-bottom:0;">
+                    <div><label>Роль в комісії</label><select id="sign_role_${signCount}" onchange="saveStatic()"><option value="Заступник голови комісії">Заступник</option><option value="Секретар комісії">Секретар</option><option value="Член комісії">Член комісії</option></select></div>
+                    <div><label>ПІБ (Називний - хто?)</label><input type="text" id="sign_name_${signCount}" placeholder="Ольга Субботкіна" oninput="saveStatic()"></div>
+                </div>
+            </div>`;
+        document.getElementById('signatures-container').insertAdjacentHTML('beforeend', html);
+        if (!_loadingStatic) saveStatic();
+    }
+
+    const optFnd = `<option value="-">-</option><option value="Залізобетонні">Залізобетонні</option><option value="Бетонні">Бетонні</option><option value="Палі">Палі</option><option value="Монолітні">Монолітні</option><option value="Бутові">Бутові</option><option value="custom" class="custom-opt">✏ Вписати свій...</option>`;
+    const optWall = `<option value="-">-</option><option value="цегла">цегла</option><option value="черепашник">черепашник</option><option value="газобетон">газобетон</option><option value="металеві">металеві</option><option value="дерев'яні">дерев'яні</option><option value="бутові">бутові</option><option value="панельні">панельні</option><option value="блоки">блоки</option><option value="custom" class="custom-opt">✏ Вписати свій...</option>`;
+    const optInWall = `<option value="-">-</option><option value="цегла">цегла</option><option value="черепашник">черепашник</option><option value="газобетон">газобетон</option><option value="металеві">металеві</option><option value="дерев'яні">дерев'яні</option><option value="панельні">панельні</option><option value="гіпсокартон">гіпсокартон</option><option value="шпалери">шпалери</option><option value="оштукатурені, пофарбовані">оштукатурені, пофарбовані</option><option value="custom" class="custom-opt">✏ Вписати свій...</option>`;
+    const optOver = `<option value="-">-</option><option value="з/б плити">з/б плити</option><option value="монолітні">монолітні</option><option value="дерев'яні">дерев'яні</option><option value="custom" class="custom-opt">✏ Вписати свій...</option>`;
+    const optCover = `<option value="-">-</option><option value="цементна стяжка">цементна стяжка</option><option value="плитка">плитка</option><option value="дорожні плити">дорожні плити</option><option value="custom" class="custom-opt">✏ Вписати свій...</option>`;
+    const optRoof = `<option value="-">-</option><option value="рулонна">рулонна</option><option value="бітумна черепиця">бітумна черепиця</option><option value="металочерепиця">металочерепиця</option><option value="металопрофіль">металопрофіль</option><option value="шифер">шифер</option><option value="custom" class="custom-opt">✏ Вписати свій...</option>`;
+    const optWin = `<option value="-">-</option><option value="дерев'яні">дерев'яні</option><option value="металопластикові">металопластикові</option><option value="металеві">металеві</option><option value="custom" class="custom-opt">✏ Вписати свій...</option>`;
+    const optDoor = `<option value="-">-</option><option value="дерев'яні">дерев'яні</option><option value="металопластикові">металопластикові</option><option value="металеві">металеві</option><option value="custom" class="custom-opt">✏ Вписати свій...</option>`;
+    const optFac = `<option value="-">-</option><option value="оштукатурені, пофарбовані">оштукатурені, пофарбовані</option><option value="цегла">цегла</option><option value="утеплені пенопластом">утеплені пенопластом</option><option value="утеплені мін. ватою">утеплені мін. ватою</option><option value="custom" class="custom-opt">✏ Вписати свій...</option>`;
+    const optFlr = `<option value="-">-</option><option value="лінолеум">лінолеум</option><option value="плитка">плитка</option><option value="цементна стяжка">цементна стяжка</option><option value="ламінат">ламінат</option><option value="паркет">паркет</option><option value="дощаті">дощаті</option><option value="custom" class="custom-opt">✏ Вписати свій...</option>`;
+    const optCeil = `<option value="-">-</option><option value="гіпсокартон">гіпсокартон</option><option value="підвісна">підвісна</option><option value="оштукатурені, пофарбовані">оштукатурені, пофарбовані</option><option value="шпалери">шпалери</option><option value="custom" class="custom-opt">✏ Вписати свій...</option>`;
+    const optYN = `<option value="так">так</option><option value="ні">ні</option><option value="-">-</option><option value="custom" class="custom-opt">✏ Вписати свій...</option>`;
+
+    function addBuilding() {
+        bldCount++;
+        const html = `
+            <div class="dynamic-list-item bld-block" id="bld-block-${bldCount}" data-id="${bldCount}">
+                <button onclick="document.getElementById('bld-block-${bldCount}').remove(); updateBuildingDropdowns(); saveData();" style="position:absolute; right:10px; top:10px; color:#e74c3c; border:none; background:none; cursor:pointer; font-weight:bold;">✖</button>
+                <div class="row" style="margin-bottom:10px;">
+                    <div><label style="color:#2980b9;">Літера (Назва)</label><input type="text" class="bld-name" id="bld_name_${bldCount}" placeholder="Літ. 2Х (або пусто для квартири)" oninput="updateBuildingDropdowns(); saveData();"></div>
+                </div>
+                <div class="row">
+                    <div><label>Фундаменти</label><select id="bld_fnd_${bldCount}" onchange="checkCustom(this)">${optFnd}</select></div>
+                    <div><label>Стіни зовнішні</label><select id="bld_wall_${bldCount}" onchange="checkCustom(this)">${optWall}</select></div>
+                    <div><label>Стіни внутрішні</label><select id="bld_in_wall_${bldCount}" onchange="checkCustom(this)">${optInWall}</select></div>
+                </div>
+                <div class="row">
+                    <div><label>Перекриття (1 поверх)</label><select id="bld_over1_${bldCount}" onchange="checkCustom(this)">${optOver}</select></div>
+                    <div><label>Перекриття (Міжпов.)</label><select id="bld_overm_${bldCount}" onchange="checkCustom(this)">${optOver}</select></div>
+                    <div><label>Перекриття (Горище)</label><select id="bld_overa_${bldCount}" onchange="checkCustom(this)">${optOver}</select></div>
+                </div>
+                <div class="row">
+                    <div><label>Покриття</label><select id="bld_cover_${bldCount}" onchange="checkCustom(this)">${optCover}</select></div>
+                    <div><label>Покрівлі</label><select id="bld_roof_${bldCount}" onchange="checkCustom(this)">${optRoof}</select></div>
+                </div>
+                <div class="row">
+                    <div><label>Вікна</label><select id="bld_win_${bldCount}" onchange="checkCustom(this)">${optWin}</select></div>
+                    <div><label>Двері (вхідні)</label><select id="bld_door_${bldCount}" onchange="checkCustom(this)">${optDoor}</select></div>
+                </div>
+                <div class="row">
+                    <div><label>Фасад</label><select id="bld_fac_${bldCount}" onchange="checkCustom(this)">${optFac}</select></div>
+                    <div><label>Підлоги</label><select id="bld_flr_${bldCount}" onchange="checkCustom(this)">${optFlr}</select></div>
+                    <div><label>Стеля</label><select id="bld_ceil_${bldCount}" onchange="checkCustom(this)">${optCeil}</select></div>
+                </div>
+                <div class="row" style="background:#f0f8ff; padding:10px; border-radius:4px;">
+                    <div><label>Електропостачання</label><select id="bld_el_${bldCount}" onchange="checkCustom(this)">${optYN}</select></div>
+                    <div><label>Водопостачання</label><select id="bld_w_${bldCount}" onchange="checkCustom(this)">${optYN}</select></div>
+                    <div><label>Газопостачання</label><select id="bld_g_${bldCount}" onchange="checkCustom(this)">${optYN}</select></div>
+                    <div><label>Каналізація</label><select id="bld_kan_${bldCount}" onchange="checkCustom(this)">${optYN}</select></div>
+                    <div><label>Опалення</label><select id="bld_op_${bldCount}" onchange="checkCustom(this)">${optYN}</select></div>
+                </div>
+            </div>`;
+        document.getElementById('buildings-container').insertAdjacentHTML('beforeend', html);
+        updateBuildingDropdowns(); saveData();
+    }
+
+    function getBuildingOptions() {
+        let options = '<option value="">(Без літери / Квартира)</option>';
+        document.querySelectorAll('.bld-name').forEach(input => {
+            let val = input.value.trim();
+            if(val) options += `<option value="${val}">${val}</option>`;
+        });
+        return options;
+    }
+
+    function updateBuildingDropdowns() {
+        let options = getBuildingOptions();
+        document.querySelectorAll('.bld-select').forEach(select => {
+            let currentVal = select.value;
+            select.innerHTML = options;
+            select.value = currentVal; 
+        });
+    }
+
+    function addWindow() {
+        windowCount++; const id = windowCount;
+        const html = `
+            <div class="smart-block win-block" id="win-block-${id}" data-id="${id}" style="position: relative;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; border-bottom: 1px solid #eee; padding-bottom: 10px;">
+                    <div style="display: flex; gap: 10px; align-items: center; flex: 1; min-width: 0;">
+                        <strong style="font-size: 16px; color: #2c3e50; white-space: nowrap;">Блок №${id}</strong>
+                        <select id="bld_sel_win_${id}" class="bld-select" style="width:130px; flex-shrink:0; padding:4px; font-size:12px;" onchange="saveData()">${getBuildingOptions()}</select>
+                        <input type="text" id="name_win_${id}" placeholder="Назва (напр. Кухня)" style="flex:1; min-width:0; padding:8px 10px; font-size:13px; border:1px solid #ccc; border-radius:4px;" oninput="saveData()">
+                    </div>
+                    ${id > 1 ? `<button onclick="document.getElementById('win-block-${id}').remove(); calcAll();" style="color: #e74c3c; cursor: pointer; font-size: 13px; border: none; background: none; font-weight: bold; text-decoration: underline; margin-left:10px; white-space:nowrap;">✖ Видалити</button>` : ''}
+                </div>
+                <div style="display: flex; gap: 15px; align-items: center; margin-bottom: 10px; flex-wrap: wrap;">
+                    <div style="display: flex; align-items: center; gap: 5px;"><label style="margin:0; font-size:13px;">К-сть:</label><input type="number" id="q-win-${id}" value="1" oninput="calcWinArea(${id})" style="width: 60px; font-weight: bold; padding: 5px;"></div>
+                    <div style="display: flex; align-items: center; gap: 5px;"><label style="margin:0; font-size:13px;">Тип:</label>
+                        <select id="w-type-${id}" onchange="toggleWinType(${id}); calcAll()" style="width: 250px; padding: 5px; font-weight:bold; color:#2c3e50;">
+                            <option value="frame">Вікно: Рама+Укоси (п.9,10)</option>
+                            <option value="glass">Вікно: Тільки скло (п.8)</option>
+                            <option value="door_mp">Двері м/п (п.9 без укосів)</option>
+                            <option value="door_in_6">Двері міжкімнатні (п.6)</option>
+                            <option value="door_out_7">Двері вхідні метал. (п.7)</option>
+                        </select>
+                    </div>
+                    <div id="slope-type-container-${id}" style="display: flex; align-items: center; gap: 5px;"><label style="margin:0; font-size:13px;">Укоси:</label>
+                        <select id="s-type-${id}" onchange="calcAll()" style="width: 130px; padding: 5px;"><option value="10">Штукатурка</option><option value="30">Гіпсокартон</option></select>
+                    </div>
+                </div>
+                <div class="flex-calc">
+                    <span>Ш:</span> <input type="number" id="w_${id}" oninput="calcWinArea(${id})" placeholder="0">
+                    <span class="math-sign">×</span> В: <input type="number" id="h_${id}" oninput="calcWinArea(${id})" placeholder="0">
+                    <span class="math-sign">=</span> ПЛОЩА: <input type="number" id="res_w_${id}" class="area-result" oninput="calcAll()" placeholder="0.00"> м²
+                    <span id="slope-input-box-${id}" style="margin-left: 15px; padding-left: 15px; border-left: 1px solid #ccc; display: flex; align-items: center; gap: 5px;">
+                        Глиб: <input type="number" id="d_${id}" value="0.3" oninput="calcWinArea(${id})" style="width: 60px;">
+                        <span class="math-sign">→</span> Укоси: <input type="number" id="res_s_${id}" class="area-result" oninput="calcAll()" placeholder="0.00"> м²
+                    </span>
+                </div>
+                <input type="text" id="desc_win_${id}" class="desc-input" placeholder="Опис пошкодження для Акта (напр. розбито скління / деформовано двері)" oninput="saveData()">
+            </div>`;
+        document.getElementById('windows-container').insertAdjacentHTML('beforeend', html);
+        calcAll();
+    }
+
+    function toggleWinType(id) {
+        const type = document.getElementById(`w-type-${id}`).value;
+        const isFrame = type === 'frame';
+        const isDoor = type === 'door_in_6' || type === 'door_out_7';
+        const slopeTypeContainer = document.getElementById(`slope-type-container-${id}`);
+        const slopeInputBox = document.getElementById(`slope-input-box-${id}`);
+        if(slopeTypeContainer) slopeTypeContainer.style.display = isFrame ? 'flex' : 'none';
+        if(slopeInputBox) slopeInputBox.style.display = isFrame ? 'flex' : 'none';
+        const dimBox = document.getElementById(`w_${id}`);
+        const flexCalc = dimBox ? dimBox.closest('.flex-calc') : null;
+        if(flexCalc) flexCalc.style.opacity = isDoor ? '0.4' : '1';
+    }
+
+    function calcWinArea(id) {
+        const qty = parseFloat(document.getElementById(`q-win-${id}`).value) || 1;
+        const w = parseFloat(document.getElementById(`w_${id}`).value) || 0;
+        const h = parseFloat(document.getElementById(`h_${id}`).value) || 0;
+        const d = parseFloat(document.getElementById(`d_${id}`).value) || 0;
+        if (w > 0 && h > 0) {
+            document.getElementById(`res_w_${id}`).value = (w * h * qty).toFixed(2);
+            document.getElementById(`res_s_${id}`).value = (((2 * h) + w) * d * qty).toFixed(2);
+        }
+        calcAll();
+    }
+
+    function addZone(type) {
+        zoneCounts[type]++; const id = zoneCounts[type];
+        let title = "", dim2Label = "Ширина", dim2Id = "w", cbsHTML = "";
+
+        if (type === 'roof') {
+            title = "Дах"; cbsHTML = `<label class="cb-label"><input type="checkbox" class="cb-inp" data-type="${type}" data-zone="${id}" data-id="1" onchange="calcAll()"> <span>п.1. Локально шифер/черепиця</span></label><label class="cb-label"><input type="checkbox" class="cb-inp" data-type="${type}" data-zone="${id}" data-id="3" onchange="calcAll()"> <span>п.3. Заміна без крокв</span></label><label class="cb-label"><input type="checkbox" class="cb-inp" data-type="${type}" data-zone="${id}" data-id="4" onchange="calcAll()"> <span>п.4. З кроквами до 25%</span></label><label class="cb-label"><input type="checkbox" class="cb-inp" data-type="${type}" data-zone="${id}" data-id="5" onchange="calcAll()"> <span>п.5. З кроквами більше 25%</span></label>`;
+        } else if (type === 'over') {
+            title = "Перекриття"; cbsHTML = `<label class="cb-label"><input type="checkbox" class="cb-inp" data-type="${type}" data-zone="${id}" data-id="16" onchange="calcAll()"> <span>п.16. Розбирання дерев'яних</span></label><label class="cb-label"><input type="checkbox" class="cb-inp" data-type="${type}" data-zone="${id}" data-id="17" onchange="calcAll()"> <span>п.17. Влаштування дерев'яних</span></label><label class="cb-label"><input type="checkbox" class="cb-inp" data-type="${type}" data-zone="${id}" data-id="18" onchange="calcAll()"> <span>п.18. Розбирання з/б</span></label><label class="cb-label"><input type="checkbox" class="cb-inp" data-type="${type}" data-zone="${id}" data-id="19" onchange="calcAll()"> <span>п.19. Відновлення з/б</span></label>`;
+        } else if (type === 'wall') {
+            title = "Стіни"; dim2Label = "Висота"; dim2Id = "h"; cbsHTML = `<label class="cb-label"><input type="checkbox" class="cb-inp" data-type="${type}" data-zone="${id}" data-id="23" onchange="calcAll()"> <span>п.23. Відбивання штукатурки</span></label><label class="cb-label"><input type="checkbox" class="cb-inp" data-type="${type}" data-zone="${id}" data-id="24" onchange="calcAll()"> <span>п.24. Штукатурення</span></label><label class="cb-label"><input type="checkbox" class="cb-inp" data-type="${type}" data-zone="${id}" data-id="26" onchange="calcAll()"> <span>п.26. Фарбування</span></label><label class="cb-label"><input type="checkbox" class="cb-inp" data-type="${type}" data-zone="${id}" data-id="27" onchange="calcAll()"> <span>п.27. Шпалери</span></label><label class="cb-label"><input type="checkbox" class="cb-inp" data-type="${type}" data-zone="${id}" data-id="28" onchange="calcAll()"> <span>п.28. Плитка</span></label><label class="cb-label"><input type="checkbox" class="cb-inp" data-type="${type}" data-zone="${id}" data-id="29" onchange="calcAll()"> <span>п.29. Гіпсокартон (фальшстіни)</span></label>`;
+        } else if (type === 'ceil') {
+            title = "Стеля"; cbsHTML = `<label class="cb-label"><input type="checkbox" class="cb-inp" data-type="${type}" data-zone="${id}" data-id="25" onchange="calcAll()"> <span>п.25. Підготовка (розчищення)</span></label><label class="cb-label"><input type="checkbox" class="cb-inp" data-type="${type}" data-zone="${id}" data-id="32" onchange="calcAll()"> <span>п.32. Фарбування</span></label><label class="cb-label"><input type="checkbox" class="cb-inp" data-type="${type}" data-zone="${id}" data-id="33" onchange="calcAll()"> <span>п.33. Шпалери</span></label><label class="cb-label"><input type="checkbox" class="cb-inp" data-type="${type}" data-zone="${id}" data-id="34" onchange="calcAll()"> <span>п.34. Підвісні/натяжні/гіпсокартон</span></label>`;
+        } else if (type === 'flr') {
+            title = "Підлога"; cbsHTML = `<label class="cb-label"><input type="checkbox" class="cb-inp" data-type="${type}" data-zone="${id}" data-id="35" onchange="calcAll()"> <span>п.35. Розбирання стяжки</span></label><label class="cb-label"><input type="checkbox" class="cb-inp" data-type="${type}" data-zone="${id}" data-id="36" onchange="calcAll()"> <span>п.36. Гідроізоляція</span></label><label class="cb-label"><input type="checkbox" class="cb-inp" data-type="${type}" data-zone="${id}" data-id="37" onchange="calcAll()"> <span>п.37. Стяжка цементна</span></label><label class="cb-label"><input type="checkbox" class="cb-inp" data-type="${type}" data-zone="${id}" data-id="41" onchange="calcAll()"> <span>п.41. Стяжка самовирівнювальна</span></label><label class="cb-label"><input type="checkbox" class="cb-inp" data-type="${type}" data-zone="${id}" data-id="38" onchange="calcAll()"> <span>п.38. Плитка</span></label><label class="cb-label"><input type="checkbox" class="cb-inp" data-type="${type}" data-zone="${id}" data-id="39" onchange="calcAll()"> <span>п.39. Ламінат</span></label><label class="cb-label"><input type="checkbox" class="cb-inp" data-type="${type}" data-zone="${id}" data-id="42" onchange="calcAll()"> <span>п.42. Лінолеум</span></label><label class="cb-label"><input type="checkbox" class="cb-inp" data-type="${type}" data-zone="${id}" data-id="44" onchange="calcAll()"> <span>п.44. Відновлення дощатих</span></label>`;
+        } else if (type === 'fac') {
+            title = "Фасад"; dim2Label = "Висота"; dim2Id = "h"; cbsHTML = `<label class="cb-label"><input type="checkbox" class="cb-inp" data-type="${type}" data-zone="${id}" data-id="12" onchange="calcAll()"> <span>п.12. З утепленням</span></label><label class="cb-label"><input type="checkbox" class="cb-inp" data-type="${type}" data-zone="${id}" data-id="14" onchange="calcAll()"> <span>п.14. Штукатурення без утеплення</span></label><label class="cb-label"><input type="checkbox" class="cb-inp" data-type="${type}" data-zone="${id}" data-id="15" onchange="calcAll()"> <span>п.15. Фарбування</span></label><label class="cb-label"><input type="checkbox" class="cb-inp" data-type="${type}" data-zone="${id}" data-id="11" onchange="calcAll()"> <span>п.11. Відновлення укосів</span></label>`;
+        } else if (type === 'fnd') {
+            title = "Фундамент"; cbsHTML = `<label class="cb-label"><input type="checkbox" class="cb-inp" data-type="${type}" data-zone="${id}" data-id="60" onchange="calcAll()"> <span>п.60. Захисний шар фундаментів</span></label><label class="cb-label"><input type="checkbox" class="cb-inp" data-type="${type}" data-zone="${id}" data-id="61" onchange="calcAll()"> <span>п.61. Гідроізоляція</span></label><label class="cb-label"><input type="checkbox" class="cb-inp" data-type="${type}" data-zone="${id}" data-id="63" onchange="calcAll()"> <span>п.63. Вимощення асфальтне</span></label><label class="cb-label"><input type="checkbox" class="cb-inp" data-type="${type}" data-zone="${id}" data-id="64" onchange="calcAll()"> <span>п.64. Вимощення бетонне</span></label>`;
+        }
+
+        const html = `
+            <div class="smart-block zone-block" id="zone-${type}-${id}" data-type="${type}" data-id="${id}" style="position: relative;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; border-bottom: 1px solid #eee; padding-bottom: 10px;">
+                    <div style="display: flex; gap: 10px; align-items: center; flex: 1; min-width: 0;">
+                        <strong style="font-size: 16px; color: #2c3e50; white-space: nowrap;">${title} №${id}</strong>
+                        <select id="bld_sel_${type}_${id}" class="bld-select" style="width:130px; flex-shrink:0; padding:4px; font-size:12px;" onchange="saveData()">${getBuildingOptions()}</select>
+                        <input type="text" id="name_${type}_${id}" placeholder="Назва (напр. Спальня)" style="flex:1; min-width:0; padding:8px 10px; font-size:13px; border:1px solid #ccc; border-radius:4px;" oninput="saveData()">
+                    </div>
+                    ${id > 1 ? `<button onclick="document.getElementById('zone-${type}-${id}').remove(); calcAll();" style="color: #e74c3c; cursor: pointer; font-size: 13px; border: none; background: none; font-weight: bold; text-decoration: underline; margin-left:10px; white-space:nowrap;">✖ Видалити</button>` : ''}
+                </div>
+                <div class="flex-calc">
+                    <span>К-сть:</span> <input type="number" id="q_${type}_${id}" value="1" oninput="calcZoneArea('${type}', ${id})" style="width: 60px;">
+                    <span style="margin: 0 5px; color: #ccc;">|</span>
+                    <span>Д:</span> <input type="number" id="l_${type}_${id}" oninput="calcZoneArea('${type}', ${id})" placeholder="0"> 
+                    <span class="math-sign">×</span> ${dim2Label.charAt(0)}: <input type="number" id="${dim2Id}_${type}_${id}" oninput="calcZoneArea('${type}', ${id})" placeholder="0"> 
+                    <span class="math-sign">=</span> ПЛОЩА: <input type="number" id="res_${type}_${id}" class="area-result" oninput="calcAll()" placeholder="0.00"> м²
+                </div>
+                <div class="cb-grid">${cbsHTML}</div>
+                <input type="text" id="desc_${type}_${id}" class="desc-input" placeholder="Опис пошкодження для Акта (напр. відбито штукатурку)" oninput="saveData()">
+            </div>`;
+        document.getElementById(`${type}-container`).insertAdjacentHTML('beforeend', html);
+        calcAll();
+    }
+
+    function calcZoneArea(type, id) {
+        const qty = parseFloat(document.getElementById(`q_${type}_${id}`).value) || 1;
+        const l = parseFloat(document.getElementById(`l_${type}_${id}`).value) || 0;
+        const secondEl = document.getElementById(`w_${type}_${id}`) || document.getElementById(`h_${type}_${id}`);
+        const w = secondEl ? (parseFloat(secondEl.value) || 0) : 0;
+        if (l > 0 && w > 0) document.getElementById(`res_${type}_${id}`).value = ((l * w) * qty).toFixed(2);
+        calcAll();
+    }
+
+    function addEngZone() {
+        engCount++; const id = engCount;
+        const html = `
+            <div class="smart-block eng-block" id="eng-block-${id}" data-id="${id}" style="position: relative;">
+                <button onclick="document.getElementById('eng-block-${id}').remove(); calcAll();" style="position:absolute; right:10px; top:10px; color:#e74c3c; border:none; background:none; cursor:pointer; font-weight:bold;">✖</button>
+                <div style="display: flex; gap: 10px; align-items: center; margin-bottom: 10px;">
+                    <strong style="font-size: 16px;">Зона №${id}</strong>
+                    <select id="bld_sel_eng_${id}" class="bld-select" style="width:130px; padding:4px; font-size:12px;" onchange="saveData()">${getBuildingOptions()}</select>
+                    <input type="text" id="name_eng_${id}" placeholder="Назва кімнати/зони" style="width: 150px; padding: 5px; font-size: 13px;" oninput="saveData()">
+                </div>
+                <div class="grid-eng">
+                    <div class="grid-eng-title">Інженерні мережі — Відновлення (Місця)</div>
+                    <div>п.46.1 Водопровід<input type="number" id="e_46_1_${id}" oninput="calcAll()" placeholder="0"></div>
+                    <div>п.46.2 Каналізація<input type="number" id="e_46_2_${id}" oninput="calcAll()" placeholder="0"></div>
+                    <div>п.46.3 Опалення<input type="number" id="e_46_3_${id}" oninput="calcAll()" placeholder="0"></div>
+                    <div>п.46.4 Газопостач.<input type="number" id="e_46_4_${id}" oninput="calcAll()" placeholder="0"></div>
+                    <div>п.46.5 Електропостач.<input type="number" id="e_46_5_${id}" oninput="calcAll()" placeholder="0"></div>
+                    <div class="grid-eng-title">Сантехнічні прилади (Штуки)</div>
+                    <div>п.47 Унітаз з бачком<input type="number" id="e_47_${id}" oninput="calcAll()" placeholder="0"></div>
+                    <div>п.48 Умивальник зі змішувачем<input type="number" id="e_48_${id}" oninput="calcAll()" placeholder="0"></div>
+                    <div>п.49 Умивальник без змішувача<input type="number" id="e_49_${id}" oninput="calcAll()" placeholder="0"></div>
+                    <div>п.50 Ванна купальна<input type="number" id="e_50_${id}" oninput="calcAll()" placeholder="0"></div>
+                    <div>п.51 Піддон душовий<input type="number" id="e_51_${id}" oninput="calcAll()" placeholder="0"></div>
+                    <div>п.52 Змішувач з душем<input type="number" id="e_52_${id}" oninput="calcAll()" placeholder="0"></div>
+                    <div>п.53 Мийка кухонна<input type="number" id="e_53_${id}" oninput="calcAll()" placeholder="0"></div>
+                    <div>п.54 Змішувач кухонний<input type="number" id="e_54_${id}" oninput="calcAll()" placeholder="0"></div>
+                    <div>п.55 Бойлер<input type="number" id="e_55_${id}" oninput="calcAll()" placeholder="0"></div>
+                    <div>п.56 Колонка газова<input type="number" id="e_56_${id}" oninput="calcAll()" placeholder="0"></div>
+                    <div>п.57 Котел двоконтурний<input type="number" id="e_57_${id}" oninput="calcAll()" placeholder="0"></div>
+                    <div class="grid-eng-title">Прочищення мереж (Погонні метри)</div>
+                    <div>п.58 Вентил./димохідні канали<input type="number" id="e_58_${id}" oninput="calcAll()" placeholder="0"></div>
+                    <div>п.59 Каналізаційна мережа<input type="number" id="e_59_${id}" oninput="calcAll()" placeholder="0"></div>
+                </div>
+                <input type="text" id="desc_eng_${id}" class="desc-input" placeholder="Опис пошкодження для Акта" oninput="saveData()">
+            </div>`;
+        document.getElementById('eng-container').insertAdjacentHTML('beforeend', html);
+        calcAll();
+    }
+
+    // ===== ВИПРАВЛЕНИЙ calcAllNow: правильний збір чекбоксів через data-атрибути =====
+    function _calcAllNow() {
+        volumes = {}; let masterTotal = 0;
+
+        // Вікна та двері
+        document.querySelectorAll('.win-block').forEach(block => {
+            const id = block.dataset.id;
+            const qty = parseFloat(document.getElementById(`q-win-${id}`).value) || 1;
+            const type = document.getElementById(`w-type-${id}`).value;
+            const winAreaTotal = parseFloat(document.getElementById(`res_w_${id}`).value) || 0;
+            const slopeAreaTotal = parseFloat(document.getElementById(`res_s_${id}`).value) || 0;
+
+            if (type === 'door_in_6') {
+                volumes[6] = (volumes[6] || 0) + qty; 
+            } else if (type === 'door_out_7') {
+                volumes[7] = (volumes[7] || 0) + qty; 
+            } else if (type === 'frame') {
+                volumes[9] = (volumes[9] || 0) + winAreaTotal;
+                const sKey = document.getElementById(`s-type-${id}`).value;
+                volumes[sKey] = (volumes[sKey] || 0) + slopeAreaTotal;
+            } else if (type === 'door_mp') {
+                volumes[9] = (volumes[9] || 0) + winAreaTotal;
+            } else { // glass
+                volumes[8] = (volumes[8] || 0) + winAreaTotal; 
+            }
+        });
+
+        // Зони — ВИПРАВЛЕНО: шукаємо input[type="checkbox"] всередині zone-block по data-атрибутах
+        document.querySelectorAll('.zone-block').forEach(block => {
+            const type = block.dataset.type, id = block.dataset.id;
+            const areaTotal = parseFloat(document.getElementById(`res_${type}_${id}`)?.value) || 0;
+            if (areaTotal > 0) {
+                block.querySelectorAll('input[type="checkbox"].cb-inp').forEach(cb => {
+                    if (cb.checked) {
+                        const key = cb.dataset.id;
+                        volumes[key] = (volumes[key] || 0) + areaTotal;
+                    }
+                });
+            }
+        });
+        
+        // Інженерія
+        document.querySelectorAll('.eng-block').forEach(block => {
+            const id = block.dataset.id;
+            ['46_1','46_2','46_3','46_4','46_5','47','48','49','50','51','52','53','54','55','56','57','58','59'].forEach(code => {
+                let el = document.getElementById(`e_${code}_${id}`);
+                if(!el) return;
+                let v = parseFloat(el.value) || 0;
+                if(v > 0) volumes[code] = (volumes[code] || 0) + v;
+            });
+        });
+
+        // Одиночні поля
+        document.querySelectorAll('.single-inp').forEach(inp => {
+            const val = parseFloat(inp.value) || 0;
+            if (val > 0) volumes[inp.dataset.id] = (volumes[inp.dataset.id] || 0) + val;
+        });
+
+        // Підрахунок суми
+        for (let key in volumes) {
+            if (volumes[key] > 0 && DB[key]) masterTotal += Math.round(volumes[key] * DB[key] * 100) / 100;
+        }
+        document.getElementById('master_total').innerText = formatSum(masterTotal);
+
+        // Оновлення UI
+        updateTabSubtotals();
+        _saveDataNow();
+    }
+
+    function saveStatic() {
+        const sData = { signs: [], inputs: {} };
+        ['order_no','order_date','order_name','comm_head_nom','comm_head_gen','comm_deputy','comm_sec','comm_members'].forEach(id => {
+            if(document.getElementById(id)) sData.inputs[id] = document.getElementById(id).value;
+        });
+        document.querySelectorAll('div[id^="sign-block-"]').forEach(b => {
+            let id = b.id.split('-')[2];
+            sData.signs.push({ role: document.getElementById(`sign_role_${id}`).value, name: document.getElementById(`sign_name_${id}`).value });
+        });
+        localStorage.setItem('evidnovlennya_static_v14', JSON.stringify(sData));
+    }
+
+    function loadStatic() {
+        const s = localStorage.getItem('evidnovlennya_static_v14');
+        document.getElementById('signatures-container').innerHTML = ''; signCount = 0;
+        if(s) {
+            const sData = JSON.parse(s);
+            for(let id in sData.inputs) { if(document.getElementById(id)) document.getElementById(id).value = sData.inputs[id]; }
+            if(sData.signs) {
+                _loadingStatic = true;
+                sData.signs.forEach(si => {
+                    addSignature(); let id = signCount;
+                    document.getElementById(`sign_role_${id}`).value = si.role;
+                    document.getElementById(`sign_name_${id}`).value = si.name;
+                });
+                _loadingStatic = false;
+                saveStatic();
+            }
+        }
+    }
+
+    function _saveDataNow() {
+        try {
+            const data = { inputs: {}, windows: [], zones: [], buildings: [], owners: [], eng: [] };
+            
+            document.querySelectorAll('#t-general input, #t-general select, #t-general textarea, #t-techpass input, #t-techpass select, #t-export input, #t-export select').forEach(el => {
+                if (!el.id.startsWith('bld_') && !el.id.startsWith('ow_')) data.inputs[el.id] = el.value;
+            });
+            document.querySelectorAll('#t-roof .single-inp, #t-walls .single-inp, #t-floors .single-inp').forEach(el => data.inputs[el.id || 'si_' + el.dataset.id] = el.value);
+            document.querySelectorAll('#desc_roof_manual, #desc_wall_manual, #desc_flr_manual').forEach(el => { if(el) data.inputs[el.id] = el.value; });
+
+            document.querySelectorAll('.bld-block').forEach(block => {
+                const id = block.dataset.id; let bld = { id: id };
+                ['name','fnd','wall','in_wall','over1','overm','overa','cover','roof','win','door','fac','flr','ceil','el','w','g','kan','op'].forEach(prop => {
+                    let el = document.getElementById(`bld_${prop}_${id}`); if(el) bld[prop] = el.value;
+                });
+                data.buildings.push(bld);
+            });
+
+            document.querySelectorAll('.dynamic-list-item[id^="owner-block"]').forEach(block => {
+                const id = block.id.split('-')[2]; let ow = {};
+                ['type','name','doc','org','pass_date','rnokpp'].forEach(prop => {
+                    let el = document.getElementById(`ow_${prop}_${id}`); if(el) ow[prop] = el.value;
+                });
+                data.owners.push(ow);
+            });
+
+            document.querySelectorAll('.win-block').forEach(block => {
+                const id = block.dataset.id;
+                data.windows.push({
+                    bld: document.getElementById(`bld_sel_win_${id}`).value, name: document.getElementById(`name_win_${id}`).value,
+                    desc: document.getElementById(`desc_win_${id}`).value, qty: document.getElementById(`q-win-${id}`).value,
+                    type: document.getElementById(`w-type-${id}`).value, sType: document.getElementById(`s-type-${id}`).value,
+                    w: document.getElementById(`w_${id}`).value, h: document.getElementById(`h_${id}`).value, d: document.getElementById(`d_${id}`).value,
+                    res_w: document.getElementById(`res_w_${id}`).value, res_s: document.getElementById(`res_s_${id}`).value
+                });
+            });
+
+            // ВИПРАВЛЕНО: збереження чекбоксів через data-атрибути
+            document.querySelectorAll('.zone-block').forEach(block => {
+                const type = block.dataset.type, id = block.dataset.id; let cbs = {};
+                block.querySelectorAll('input[type="checkbox"].cb-inp').forEach(cb => {
+                    cbs[cb.dataset.id] = cb.checked;
+                });
+                const secondEl = document.getElementById(`w_${type}_${id}`) || document.getElementById(`h_${type}_${id}`);
+                data.zones.push({
+                    type: type, bld: document.getElementById(`bld_sel_${type}_${id}`).value, name: document.getElementById(`name_${type}_${id}`).value,
+                    desc: document.getElementById(`desc_${type}_${id}`).value, qty: document.getElementById(`q_${type}_${id}`).value,
+                    l: document.getElementById(`l_${type}_${id}`).value, w: secondEl ? secondEl.value : 0, res: document.getElementById(`res_${type}_${id}`).value, cbs: cbs
+                });
+            });
+
+            document.querySelectorAll('.eng-block').forEach(block => {
+                const id = block.dataset.id; let eObj = { bld: document.getElementById(`bld_sel_eng_${id}`).value, name: document.getElementById(`name_eng_${id}`).value, desc: document.getElementById(`desc_eng_${id}`).value };
+                ['46_1','46_2','46_3','46_4','46_5','47','48','49','50','51','52','53','54','55','56','57','58','59'].forEach(code => { let el = document.getElementById(`e_${code}_${id}`); eObj[code] = el ? el.value : ''; });
+                data.eng.push(eObj);
+            });
+
+            localStorage.setItem('evidnovlennya_save_v14', JSON.stringify(data));
+            setSaveIndicator('saved');
+        } catch(e) {
+            setSaveIndicator('error');
+            console.error('Помилка збереження:', e);
+        }
+    }
+
+    function populateDefaults() {
+        if (!document.getElementById('act_date').value) {
+            let today = new Date();
+            let dd = String(today.getDate()).padStart(2, '0');
+            let mm = String(today.getMonth() + 1).padStart(2, '0');
+            document.getElementById('act_date').value = dd + '.' + mm + '.' + today.getFullYear();
+        }
+    }
+
+    function ensureDefaults() {
+        if (document.querySelectorAll('.win-block').length === 0) addWindow();
+        if (document.querySelectorAll('.eng-block').length === 0) addEngZone();
+        if (document.querySelectorAll('.bld-block').length === 0) addBuilding();
+        if (document.querySelectorAll('[id^="owner-block"]').length === 0) addOwner();
+        ['roof', 'over', 'wall', 'ceil', 'flr', 'fac', 'fnd'].forEach(t => { 
+            if (document.querySelectorAll(`.zone-block[data-type="${t}"]`).length === 0) addZone(t); 
+        });
+        if (document.querySelectorAll('[id^="sign-block-"]').length === 0 && !localStorage.getItem('evidnovlennya_static_v14')) addSignature();
+    }
+
+    function loadData() {
+        loadStatic();
+        document.getElementById('windows-container').innerHTML = ''; windowCount = 0;
+        document.getElementById('buildings-container').innerHTML = ''; bldCount = 0;
+        document.getElementById('owners-container').innerHTML = ''; ownerCount = 0;
+        document.getElementById('eng-container').innerHTML = ''; engCount = 0;
+        ['roof', 'over', 'wall', 'ceil', 'flr', 'fac', 'fnd'].forEach(t => document.getElementById(`${t}-container`).innerHTML = '');
+        zoneCounts = { roof: 0, over: 0, wall: 0, ceil: 0, flr: 0, fac: 0, fnd: 0 };
+
+        try {
+            const saved = localStorage.getItem('evidnovlennya_save_v14');
+            if (saved) { 
+                const data = JSON.parse(saved);
+                if (data.inputs) { 
+                    for (let id in data.inputs) { 
+                        const el = document.getElementById(id); 
+                        if (el) {
+                            if (el.tagName.toLowerCase() === 'select') setSelectValue(el, data.inputs[id]);
+                            else el.value = data.inputs[id]; 
+                        }
+                    } 
+                }
+                if (data.buildings) {
+                    data.buildings.forEach(b => {
+                        addBuilding(); const id = bldCount;
+                        ['name','fnd','wall','in_wall','over1','overm','overa','cover','roof','win','door','fac','flr','ceil','el','w','g','kan','op'].forEach(prop => {
+                            let el = document.getElementById(`bld_${prop}_${id}`); 
+                            if(el && b[prop] !== undefined) {
+                                if (el.tagName.toLowerCase() === 'select') setSelectValue(el, b[prop]);
+                                else el.value = b[prop];
+                            }
+                        });
+                    });
+                }
+                if (data.owners) {
+                    data.owners.forEach(o => {
+                        addOwner(); const id = ownerCount;
+                        ['type','name','doc','org','pass_date','rnokpp'].forEach(prop => {
+                            let el = document.getElementById(`ow_${prop}_${id}`); 
+                            if(el && o[prop] !== undefined) {
+                                if (el.tagName.toLowerCase() === 'select') setSelectValue(el, o[prop]);
+                                else el.value = o[prop];
+                            }
+                        });
+                    });
+                }
+                updateBuildingDropdowns();
+
+                if (data.windows) {
+                    data.windows.forEach(win => {
+                        addWindow(); const id = windowCount;
+                        if(win.bld) document.getElementById(`bld_sel_win_${id}`).value = win.bld;
+                        document.getElementById(`name_win_${id}`).value = win.name || ""; 
+                        document.getElementById(`desc_win_${id}`).value = win.desc || "";
+                        document.getElementById(`q-win-${id}`).value = win.qty; 
+                        document.getElementById(`w-type-${id}`).value = win.type;
+                        document.getElementById(`s-type-${id}`).value = win.sType; 
+                        document.getElementById(`w_${id}`).value = win.w || "";
+                        document.getElementById(`h_${id}`).value = win.h || ""; 
+                        document.getElementById(`d_${id}`).value = win.d || "0.3";
+                        document.getElementById(`res_w_${id}`).value = win.res_w || ""; 
+                        document.getElementById(`res_s_${id}`).value = win.res_s || "";
+                        toggleWinType(id);
+                    });
+                }
+                if (data.zones) {
+                    data.zones.forEach(z => {
+                        addZone(z.type); const id = zoneCounts[z.type];
+                        if(z.bld) document.getElementById(`bld_sel_${z.type}_${id}`).value = z.bld;
+                        document.getElementById(`name_${z.type}_${id}`).value = z.name || ""; 
+                        document.getElementById(`desc_${z.type}_${id}`).value = z.desc || "";
+                        document.getElementById(`q_${z.type}_${id}`).value = z.qty; 
+                        document.getElementById(`l_${z.type}_${id}`).value = z.l;
+                        const secondEl = document.getElementById(`w_${z.type}_${id}`) || document.getElementById(`h_${z.type}_${id}`);
+                        if (secondEl) secondEl.value = z.w;
+                        const resEl = document.getElementById(`res_${z.type}_${id}`); if (resEl) resEl.value = z.res || "";
+                        // ВИПРАВЛЕНО: відновлення чекбоксів через data-атрибути
+                        const zoneBlock = document.getElementById(`zone-${z.type}-${id}`);
+                        if (zoneBlock) {
+                            zoneBlock.querySelectorAll('input[type="checkbox"].cb-inp').forEach(cb => {
+                                if (z.cbs && z.cbs[cb.dataset.id] !== undefined) cb.checked = z.cbs[cb.dataset.id];
+                            });
+                        }
+                    });
+                }
+                if(data.eng) {
+                    data.eng.forEach(e => {
+                        addEngZone(); const id = engCount;
+                        if(e.bld) document.getElementById(`bld_sel_eng_${id}`).value = e.bld;
+                        document.getElementById(`name_eng_${id}`).value = e.name || ""; 
+                        document.getElementById(`desc_eng_${id}`).value = e.desc || "";
+                        ['46_1','46_2','46_3','46_4','46_5','47','48','49','50','51','52','53','54','55','56','57','58','59'].forEach(code => { 
+                            let el = document.getElementById(`e_${code}_${id}`); if(el) el.value = e[code] || ""; 
+                        });
+                    });
+                }
+            }
+        } catch(e) {
+            console.error("Помилка завантаження пам'яті:", e);
+        } finally {
+            populateDefaults();
+            ensureDefaults();
+            calcAll();
+        }
+    }
+
+    function resetData() {
+        if (confirm("Увага! Всі дані об'єкта будуть видалені (крім Сталих даних Комісії). Продовжити?")) {
+            localStorage.removeItem('evidnovlennya_save_v14');
+            location.reload();
+        }
+    }
+
+    function formatDamageText(qty, l, w, area, desc) {
+        let text = "";
+        if (l > 0 && w > 0) {
+            text += `Розміром ${l}м х ${w}м, `;
+            if (qty > 1) text += `у кількості ${qty} шт., `;
+            text += `загальною площею ${area.toFixed(2)} кв. м.`;
+        } else if (qty > 0 && qty !== 1) {
+            text += `У кількості ${qty} шт.`;
+        }
+        let cleanDesc = (desc || "").trim();
+        if (cleanDesc && cleanDesc !== "-") text += (text ? "; " : "") + cleanDesc;
+        return text ? text + ";" : "";
+    }
+
+    function buildSmartLists(data) {
+        let lists = { fnd: {}, fac: {}, roof: {}, wall: {}, flr: {}, win_door: {}, eng: {} };
+        
+        (data.zones || []).forEach(z => {
+            let area = parseFloat(z.res) || 0;
+            if(area <= 0 && !z.desc) return; 
+            let target = "";
+            if(z.type === 'fnd') target = 'fnd'; else if(z.type === 'fac') target = 'fac';
+            else if(z.type === 'roof' || z.type === 'over') target = 'roof';
+            else if(z.type === 'wall' || z.type === 'ceil') target = 'wall';
+            else if(z.type === 'flr') target = 'flr';
+            
+            if(target) {
+                let bld = z.bld || "no_bld";
+                if(!lists[target][bld]) lists[target][bld] = { letter_text: z.bld ? `Літ. «${z.bld}»:` : "", show_letter: !!z.bld, rooms: [] };
+                let dmgText = formatDamageText(z.qty, z.l, z.w, area, z.desc);
+                if(dmgText) lists[target][bld].rooms.push({ room_name: z.name || "Зона", text: dmgText });
+            }
+        });
+
+        (data.windows || []).forEach(w => {
+            let area = parseFloat(w.res_w) || 0;
+            let textOutput = "";
+            if(w.type.includes('door_in_6') || w.type.includes('door_out_7')) textOutput = formatDamageText(w.qty, w.w, w.h, 0, w.desc); 
+            else textOutput = formatDamageText(w.qty, w.w, w.h, area, w.desc);
+
+            if(!textOutput && !w.desc) return;
+            let bld = w.bld || "no_bld";
+            if(!lists.win_door[bld]) lists.win_door[bld] = { letter_text: w.bld ? `Літ. «${w.bld}»:` : "", show_letter: !!w.bld, rooms: [] };
+            if(textOutput) lists.win_door[bld].rooms.push({ room_name: w.name || "Блок", text: textOutput });
+        });
+
+        (data.eng || []).forEach(e => {
+            let arr = [];
+            const labels = {'46_1':'п.46.1 Водопровід (місць)','46_2':'п.46.2 Каналізація (місць)','46_3':'п.46.3 Опалення (місць)','46_4':'п.46.4 Газопостачання (місць)','46_5':'п.46.5 Електропостачання (місць)','47':'п.47 Унітаз з бачком (шт)','48':'п.48 Умивальник зі змішувачем (шт)','49':'п.49 Умивальник без змішувача (шт)','50':'п.50 Ванна купальна (шт)','51':'п.51 Піддон душовий (шт)','52':'п.52 Змішувач з душем (шт)','53':'п.53 Мийка кухонна (шт)','54':'п.54 Змішувач кухонний (шт)','55':'п.55 Бойлер (шт)','56':'п.56 Колонка газова (шт)','57':'п.57 Котел двоконтурний (шт)','58':'п.58 Вентил./димохідні канали (пм)','59':'п.59 Каналізаційна мережа (пм)'};
+            for(let k in labels) { if(parseFloat(e[k])>0) arr.push(`${labels[k]} - ${e[k]}`); }
+            if(arr.length === 0 && !e.desc) return;
+            let txt = arr.join(', '); if(e.desc) txt += `; ${e.desc}`; txt += ";";
+            
+            let bld = e.bld || "no_bld";
+            if(!lists.eng[bld]) lists.eng[bld] = { letter_text: e.bld ? `Літ. «${e.bld}»:` : "", show_letter: !!e.bld, rooms: [] };
+            if(txt && txt !== ';') lists.eng[bld].rooms.push({ room_name: e.name || "Зона", text: txt });
+        });
+
+        let finalLists = {};
+        for(let key in lists) {
+            finalLists[`dam_${key}`] = Object.values(lists[key]).filter(g => g.rooms && g.rooms.length > 0);
+        }
+        return finalLists;
+    }
+
+    function generateWord(docType) {
+        // Гарантуємо актуальні обсяги перед генерацією
+        _calcAllNow();
+
+        let templateBase64 = docType === 'checklist' ? checklistBase64 : actBase64;
+        if (!templateBase64 || templateBase64.includes("ТУТ_КОД_")) { alert("Помилка! Додайте код шаблону у Base64."); return; }
+
+        try {
+            const zip = new PizZip(templateBase64, { base64: true });
+            const doc = new window.docxtemplater(zip, { paragraphLoop: true, linebreaks: true, delimiters: { start: '{{', end: '}}' } });
+
+            const cityInput = document.getElementById('addr_city').value;
+            const strT = document.getElementById('addr_str_type').value;
+            const str = document.getElementById('addr_street').value;
+            const hse = document.getElementById('addr_house').value;
+            const apt = document.getElementById('addr_apt').value;
+            let fullAddr = `Одеська обл., Одеський р-н, ${cityInput}, ${strT}${str}, ${hse}`;
+            if(apt.trim() !== '') fullAddr += `, кв. ${apt}`;
+
+            let orderText = "";
+            let oNo = document.getElementById('order_no') ? document.getElementById('order_no').value : ""; 
+            let oDate = document.getElementById('order_date') ? document.getElementById('order_date').value : "";
+            if(oNo || oDate) orderText = `№ ${oNo} від ${oDate}`;
+
+            let dataToWord = { 
+                address: fullAddr, object_type: document.getElementById('object_type').value, 
+                q_1: document.getElementById('q_1').value, q_2: document.getElementById('q_2').value, q_3: document.getElementById('q_3').value, 
+                total_sum: document.getElementById('master_total').innerText,
+                act_date: document.getElementById('act_date').value, 
+                obj_name: document.getElementById('obj_name') ? document.getElementById('obj_name').value : "",
+                cadastral: document.getElementById('cadastral').value, ownership_type: document.getElementById('ownership_type').value,
+                order_doc: orderText, order_name: document.getElementById('order_name') ? document.getElementById('order_name').value : "",
+                comm_head_nom: document.getElementById('comm_head_nom') ? document.getElementById('comm_head_nom').value : "", 
+                comm_head_gen: document.getElementById('comm_head_gen') ? document.getElementById('comm_head_gen').value : "",
+                comm_deputy: document.getElementById('comm_deputy') ? document.getElementById('comm_deputy').value : "", 
+                comm_sec: document.getElementById('comm_sec') ? document.getElementById('comm_sec').value : "",
+                comm_members: document.getElementById('comm_members') ? document.getElementById('comm_members').value : "",
+                zayava_info: document.getElementById('zayava_info').value, present_list_text: document.getElementById('present_manual').value,
+                dam_date: document.getElementById('dam_date').value, dam_reason: document.getElementById('dam_reason').value,
+                conclusions: document.getElementById('conclusions').value, extra_info: document.getElementById('extra_info').value,
+                heritage_info: document.getElementById('heritage_info').value, year_built: document.getElementById('year_built').value,
+                total_area: document.getElementById('total_area').value, floors_total: document.getElementById('floors_total').value,
+                floors_over: document.getElementById('floors_over').value, floors_under: document.getElementById('floors_under').value,
+                mansard: document.getElementById('mansard').value, sections: document.getElementById('sections').value,
+                apartments: document.getElementById('apartments').value, built_in_area: document.getElementById('built_in_area').value,
+                legal_docs: document.getElementById('legal_docs').value,
+                photo_pages_text: (() => { let v = parseInt(document.getElementById('photo_pages').value) || 0; return v > 0 ? `(${v} арк.)` : ''; })()
+            };
+
+            let saved = JSON.parse(localStorage.getItem('evidnovlennya_save_v14') || "{}");
+            let ownersText = ""; let ownersSigns = [];
+            
+            if(saved.owners && saved.owners.length > 0) {
+                dataToWord.owner_name_check = saved.owners[0].name;
+
+                // Виправлення тегу {{title}} у чеклисті — перший тип власника з великої літери
+                const firstOwner = saved.owners[0];
+                const typeMap = {
+                    'власник': 'Власник',
+                    'співвласник': 'Співвласник',
+                    'управитель': 'Управитель',
+                    'юридична особа': 'Представник юридичної особи'
+                };
+                dataToWord.title = typeMap[firstOwner.type] || (firstOwner.type ? firstOwner.type.charAt(0).toUpperCase() + firstOwner.type.slice(1) : 'Власник');
+                dataToWord.owner_name = saved.owners
+                    .filter(o => o.type !== 'управитель')
+                    .map(o => o.name)
+                    .filter(Boolean)
+                    .join(', ');
+
+                let ownersList = saved.owners.filter(o => o.type === 'власник');
+                let coOwnersList = saved.owners.filter(o => o.type === 'співвласник');
+                let jurList = saved.owners.filter(o => o.type === 'юридична особа');
+                if(ownersList.length === 1) {
+                    dataToWord.checklist_owner = 'Власник: ' + ownersList[0].name;
+                } else if(ownersList.length > 1) {
+                    dataToWord.checklist_owner = 'Власники: ' + ownersList.map(o => o.name).join(', ');
+                } else if(jurList.length > 0) {
+                    dataToWord.checklist_owner = 'Юридична особа: ' + jurList.map(o => o.name).join(', ');
+                } else {
+                    dataToWord.checklist_owner = '';
+                }
+                if(coOwnersList.length > 0) {
+                    dataToWord.checklist_coowners = 'Співвласники: ' + coOwnersList.map(o => o.name).join(', ');
+                } else {
+                    dataToWord.checklist_coowners = '';
+                }
+
+                saved.owners.forEach((ow, idx) => {
+                    let isLast = idx === saved.owners.length - 1;
+                    let sep = isLast ? "" : "; ";
+                    if(ow.type === 'юридична особа') {
+                        ownersText += `представника юридичної особи ${ow.name}, ЄДРПОУ: ${ow.doc}${sep}`;
+                        ownersSigns.push({ title: 'Представник' });
+                    } else {
+                        let rnokpp = ow.rnokpp && ow.rnokpp.includes('РНОКПП:') ? ow.rnokpp.split('РНОКПП:')[1].trim() : (ow.rnokpp || '');
+                        let typeLabel = ow.type.charAt(0).toUpperCase() + ow.type.slice(1);
+                        ownersText += `${typeLabel} ${ow.name}, паспорт ${ow.doc}, виданий ${ow.org} від ${ow.pass_date}; РНОКПП: ${rnokpp}${sep}`;
+                        ownersSigns.push({ title: typeLabel });
+                    }
+                });
+            }
+            dataToWord.owner_info_full = ownersText; dataToWord.owners_signs = ownersSigns;
+
+            let sStatic = JSON.parse(localStorage.getItem('evidnovlennya_static_v14') || '{"signs":[]}');
+            dataToWord.commission_signs = sStatic.signs;
+
+            let tech = { fnd:[], wall:[], in_wall:[], over_first:[], over_mid:[], over_attic:[], cover:[], roof:[], win:[], door:[], fac:[], flr:[], ceil:[], el:[], w:[], g:[], kan:[], op:[] };
+            if(saved.buildings) {
+                saved.buildings.forEach(b => {
+                    let pfx = b.name ? `Літ. ${b.name} - ` : "";
+                    if(b.fnd && b.fnd !== "-") tech.fnd.push(`${pfx}${b.fnd}`); if(b.wall && b.wall !== "-") tech.wall.push(`${pfx}${b.wall}`);
+                    if(b.in_wall && b.in_wall !== "-") tech.in_wall.push(`${pfx}${b.in_wall}`); if(b.over1 && b.over1 !== "-") tech.over_first.push(`${pfx}${b.over1}`);
+                    if(b.overm && b.overm !== "-") tech.over_mid.push(`${pfx}${b.overm}`); if(b.overa && b.overa !== "-") tech.over_attic.push(`${pfx}${b.overa}`);
+                    if(b.cover && b.cover !== "-") tech.cover.push(`${pfx}${b.cover}`); if(b.roof && b.roof !== "-") tech.roof.push(`${pfx}${b.roof}`);
+                    if(b.win && b.win !== "-") tech.win.push(`${pfx}${b.win}`); if(b.door && b.door !== "-") tech.door.push(`${pfx}${b.door}`);
+                    if(b.fac && b.fac !== "-") tech.fac.push(`${pfx}${b.fac}`); if(b.flr && b.flr !== "-") tech.flr.push(`${pfx}${b.flr}`);
+                    if(b.ceil && b.ceil !== "-") tech.ceil.push(`${pfx}${b.ceil}`); if(b.el && b.el !== "-") tech.el.push(`${pfx}${b.el}`);
+                    if(b.w && b.w !== "-") tech.w.push(`${pfx}${b.w}`); if(b.g && b.g !== "-") tech.g.push(`${pfx}${b.g}`);
+                    if(b.kan && b.kan !== "-") tech.kan.push(`${pfx}${b.kan}`); if(b.op && b.op !== "-") tech.op.push(`${pfx}${b.op}`);
+                });
+            }
+            for(let k in tech) { dataToWord[`tech_${k}`] = tech[k].length > 0 ? tech[k].join("\n") : "-"; }
+            dataToWord.eng_el = tech.el.length > 0 ? tech.el.join("; ") : "ні"; dataToWord.eng_w = tech.w.length > 0 ? tech.w.join("; ") : "ні";
+            dataToWord.eng_g = tech.g.length > 0 ? tech.g.join("; ") : "ні"; dataToWord.eng_kan = tech.kan.length > 0 ? tech.kan.join("; ") : "ні";
+            dataToWord.eng_op = tech.op.length > 0 ? tech.op.join("; ") : "ні";
+
+            Object.assign(dataToWord, buildSmartLists(saved));
+
+            let repair = [];
+            ['roof','wall','flr'].forEach(t => { let man = document.getElementById(`desc_${t}_manual`); if(man && man.value) repair.push({text: man.value}); });
+            if(repair.length > 0) dataToWord.repair_done_list = repair;
+
+            for (let key in DB) {
+                let vol = volumes[key] || 0;
+                if (vol > 0) { dataToWord['v_' + key] = vol.toFixed(2).replace('.', ','); dataToWord['s_' + key] = formatSum(vol * DB[key]); } 
+                else { dataToWord['v_' + key] = ""; dataToWord['s_' + key] = ""; }
+            }
+
+            doc.render(dataToWord);
+            const out = doc.getZip().generate({ type: "blob", mimeType: "application/vnd.openxmlformats-officedocument.wordprocessingml.document" });
+            
+            let lastName = (dataToWord.owner_name_check || "Акт").split(' ')[0];
+            let cityFileName = cityInput.replace(/м\. |сел\. |с\. /g, '').trim();
+            let baseFileName = `${cityFileName} ${str.trim()} ${hse}${apt.trim() ? ' кв '+apt.trim() : ''} ${lastName}`;
+            let docNamePrefix = docType === 'checklist' ? 'Чеклист' : 'Акт';
+            let fileName = `${docNamePrefix} ${baseFileName}.docx`;
+            saveAs(out, fileName.replace(/\s+/g, ' '));
+        } catch (error) { alert("Помилка генерації шаблону!\n" + (error.message || '')); console.error(error); }
+    }
+
+    window.onload = loadData;
+</script>
+</body>
+</html>
