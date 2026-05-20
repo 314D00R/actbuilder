@@ -1449,13 +1449,16 @@
 
     function formatDamageText(qty, l, w, area, desc) {
         let text = "";
-        if (l > 0 && w > 0) {
-            text += `Розміром ${l}м х ${w}м, `;
-            if (qty > 1) text += `у кількості ${qty} шт., `;
-            text += `загальною площею ${area.toFixed(2)} кв. м.`;
-        } else if (qty > 0 && qty !== 1) {
-            text += `У кількості ${qty} шт.`;
-        }
+		if (l > 0 && w > 0) {
+			text += `Розміром ${l}м х ${w}м, `;
+			if (qty > 1) text += `у кількості ${qty} шт., `;
+			text += `загальною площею ${area.toFixed(2)} кв. м.`;
+		} else if (area > 0) {
+			if (qty > 1) text += `у кількості ${qty} шт., `;
+			text += `загальною площею ${area.toFixed(2)} кв. м.`;
+		} else if (qty > 0 && qty !== 1) {
+			text += `У кількості ${qty} шт.`;
+		}
         let cleanDesc = (desc || "").trim();
         if (cleanDesc && cleanDesc !== "-") text += (text ? "; " : "") + cleanDesc;
         return text ? text + ";" : "";
