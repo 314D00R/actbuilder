@@ -272,7 +272,9 @@ select option { background: var(--surface2); }
         <button class="nav-item" onclick="openPage('p-floors',this)"><span class="nav-icon">⬛</span><span>Підлоги</span><span class="nav-badge" id="badge-floors" style="display:none"></span></button>
         <button class="nav-item" onclick="openPage('p-facade',this)"><span class="nav-icon">🏛️</span><span>Фасад / Фунд.</span><span class="nav-badge" id="badge-facade" style="display:none"></span></button>
         <button class="nav-item" onclick="openPage('p-eng',this)"><span class="nav-icon">⚡</span><span>Інженерія</span><span class="nav-badge" id="badge-eng" style="display:none"></span></button>
-        <div class="nav-group-label">Підсумок</div>
+        <div class="nav-group-label">База</div>
+        <button class="nav-item" onclick="openPage('p-database',this)"><span class="nav-icon">🗄️</span><span>База об'єктів</span></button>
+		<div class="nav-group-label">Підсумок</div>
         <button class="nav-item" onclick="openPage('p-volumes',this)"><span class="nav-icon">📊</span><span>Зведена таблиця</span></button>
         <button class="nav-item green-item" onclick="openPage('p-export',this)"><span class="nav-icon">📤</span><span>Висновки / Експорт</span></button>
     </nav>
@@ -548,6 +550,23 @@ select option { background: var(--surface2); }
     </div>
 </div>
 
+<!-- PAGE: DATABASE -->
+<div id="p-database" class="page">
+    <div class="card accent">
+        <div class="card-header">
+            <div class="card-title">🗄️ База об'єктів</div>
+            <div style="display:flex;gap:8px">
+                <button class="btn btn-accent" onclick="dbSave()">💾 Зберегти поточний</button>
+                <button class="btn btn-surface" onclick="dbLoad()">🔄 Оновити список</button>
+            </div>
+        </div>
+        <div class="form-row">
+            <div class="f"><label>Пошук</label><input type="text" id="db-search" placeholder="Адреса або прізвище..." oninput="dbSearch()"></div>
+        </div>
+        <div id="db-list" style="margin-top:8px"></div>
+    </div>
+</div>
+
 <!-- PAGE: VOLUMES -->
 <div id="p-volumes" class="page">
     <div class="card">
@@ -669,7 +688,7 @@ select option { background: var(--surface2); }
         'p-techpass':'Техпаспорт','p-roof':'Дах / Перекриття',
         'p-windows':'Вікна / Двері','p-walls':'Стіни / Стеля',
         'p-floors':'Підлоги','p-facade':'Фасад / Фундамент',
-        'p-eng':'Інженерія','p-volumes':'Зведена таблиця','p-export':'Висновки / Експорт'
+        'p-eng':'Інженерія','p-volumes':'Зведена таблиця','p-export':'Висновки / Експорт','p-database':'База об\'єктів'
     };
 
     function openPage(id, btn) {
@@ -1312,6 +1331,165 @@ select option { background: var(--surface2); }
             e.target.value = '';
         }
     });
+
+	const SB_URL = 'https://tsxluggkjfqvvqfvkjnl.supabase.co/rest/v1';
+    const SB_KEY = 'sb_publishable_jmq44zoOsK0vYM4DgDC5xA_bmVDXL3Q';
+    const SB_HEADERS = {
+        'Content-Type': 'application/json',
+        'apikey': SB_KEY,
+        'Authorization': 'Bearer ' + SB_KEY
+    };
+
+    let dbAllRecords = [];
+
+    async function dbSave(){
+        _calcAllNow();
+        const allData = localStorage.getItem('evidnovlennya_save_v14');
+        const staticData = localStorage.getItem('evidnovlennya_static_v14');
+        const cityVal = document.getElementById('addr_city')?.value || '';
+        const strVal = document.getElementById('addr_street')?.value || '';
+        const hseVal = document.getElementById('addr_house')?.value || '';
+        const address = `${cityVal}, ${strVal}, ${hseVal}`.trim();
+        let ownerVal = '';
+        const saved = JSON.parse(allData || '{}');
+        if(saved.owners && saved.owners.length > 0) ownerVal = saved.owners[0].name || '';
+
+        // перевіряємо чи вже є такий запис
+        const existingId = document.getElementById('db-current-id')?.value;
+
+        const payload = {
+            address: address,
+            owner: ownerVal,
+            data: { main: allData, static: staticData },
+            updated_at: new Date().toISOString()
+        };
+
+        try {
+            let resp;
+            if(existingId) {
+                // оновлюємо існуючий
+                resp = await fetch(`${SB_URL}/acts?id=eq.${existingId}`, {
+                    method: 'PATCH',
+                    headers: { ...SB_HEADERS, 'Prefer': 'return=representation' },
+                    body: JSON.stringify(payload)
+                });
+            } else {
+                // створюємо новий
+                payload.created_at = new Date().toISOString();
+                resp = await fetch(`${SB_URL}/acts`, {
+                    method: 'POST',
+                    headers: { ...SB_HEADERS, 'Prefer': 'return=representation' },
+                    body: JSON.stringify(payload)
+                });
+            }
+            const result = await resp.json();
+            if(result && result[0] && result[0].id) {
+                let hiddenEl = document.getElementById('db-current-id');
+                if(!hiddenEl) {
+                    hiddenEl = document.createElement('input');
+                    hiddenEl.type = 'hidden';
+                    hiddenEl.id = 'db-current-id';
+                    document.body.appendChild(hiddenEl);
+                }
+                hiddenEl.value = result[0].id;
+            }
+            alert(existingId ? '✅ Запис оновлено!' : '✅ Збережено в базу!');
+            dbLoad();
+        } catch(e) {
+            alert('❌ Помилка збереження: ' + e.message);
+        }
+    }
+
+    async function dbLoad(){
+        try {
+            const resp = await fetch(`${SB_URL}/acts?order=updated_at.desc&limit=200`, {
+                headers: SB_HEADERS
+            });
+            dbAllRecords = await resp.json();
+            dbRender(dbAllRecords);
+        } catch(e) {
+            alert('❌ Помилка завантаження: ' + e.message);
+        }
+    }
+
+    function dbSearch(){
+        const q = document.getElementById('db-search').value.toLowerCase();
+        if(!q) { dbRender(dbAllRecords); return; }
+        const filtered = dbAllRecords.filter(r =>
+            (r.address||'').toLowerCase().includes(q) ||
+            (r.owner||'').toLowerCase().includes(q)
+        );
+        dbRender(filtered);
+    }
+
+    function dbRender(records){
+        const wrap = document.getElementById('db-list');
+        if(!records || records.length === 0){
+            wrap.innerHTML = '<p style="color:var(--text3);font-size:13px;padding:12px 0">Записів не знайдено.</p>';
+            return;
+        }
+        wrap.innerHTML = records.map(r => {
+            const date = new Date(r.updated_at).toLocaleDateString('uk-UA');
+            const currentId = document.getElementById('db-current-id')?.value;
+            const isActive = currentId === r.id;
+            return `<div style="display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:${isActive?'var(--accent-glow)':'var(--surface2)'};border:1px solid ${isActive?'var(--accent)':'var(--border)'};border-radius:var(--radius-sm);margin-bottom:6px;gap:10px">
+                <div style="flex:1;min-width:0">
+                    <div style="font-size:13px;font-weight:600;color:var(--text)">${r.address||'—'}</div>
+                    <div style="font-size:11px;color:var(--text3);margin-top:2px">${r.owner||'—'} · ${date}</div>
+                </div>
+                <div style="display:flex;gap:6px;flex-shrink:0">
+                    <button class="btn btn-surface" style="padding:5px 10px;font-size:11px" onclick="dbLoadRecord('${r.id}')">📂 Завантажити</button>
+                    <button class="btn btn-danger" style="padding:5px 10px;font-size:11px" onclick="dbDelete('${r.id}')">🗑️</button>
+                </div>
+            </div>`;
+        }).join('');
+    }
+
+    async function dbLoadRecord(id){
+        const record = dbAllRecords.find(r => r.id === id);
+        if(!record) return;
+        if(!confirm(`Завантажити "${record.address}"?\n\nПоточні незбережені дані будуть замінені.`)) return;
+
+        if(record.data?.main) localStorage.setItem('evidnovlennya_save_v14', record.data.main);
+        if(record.data?.static) localStorage.setItem('evidnovlennya_static_v14', record.data.static);
+
+        let hiddenEl = document.getElementById('db-current-id');
+        if(!hiddenEl){
+            hiddenEl = document.createElement('input');
+            hiddenEl.type = 'hidden';
+            hiddenEl.id = 'db-current-id';
+            document.body.appendChild(hiddenEl);
+        }
+        hiddenEl.value = id;
+
+        // перезавантажуємо форму
+        document.querySelectorAll('.zone-block,.win-block,.bld-block,.dynamic-block[id^="owner-block"],.dynamic-block[id^="sign-block"],.eng-block').forEach(el=>el.remove());
+        windowCount=0;bldCount=0;ownerCount=0;signCount=0;engCount=0;
+        zoneCounts={roof:0,over:0,wall:0,ceil:0,flr:0,fac:0,fnd:0};
+        loadData();
+        loadStatic();
+        openPage('p-general', document.querySelector('.nav-item'));
+        alert(`✅ Завантажено: ${record.address}`);
+    }
+
+    async function dbDelete(id){
+        const record = dbAllRecords.find(r => r.id === id);
+        if(!confirm(`Видалити "${record?.address}"?\n\nЦю дію не можна скасувати.`)) return;
+        try {
+            await fetch(`${SB_URL}/acts?id=eq.${id}`, {
+                method: 'DELETE',
+                headers: SB_HEADERS
+            });
+            const currentId = document.getElementById('db-current-id')?.value;
+            if(currentId === id) {
+                const el = document.getElementById('db-current-id');
+                if(el) el.value = '';
+            }
+            dbLoad();
+        } catch(e) {
+            alert('❌ Помилка видалення: ' + e.message);
+        }
+    }
 
     window.onload = function(){
         const t = localStorage.getItem('ev_theme');
