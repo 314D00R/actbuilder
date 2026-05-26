@@ -1416,7 +1416,11 @@ select option { background: var(--surface2); }
 		async function authRegister() {
 			const email = document.getElementById('auth-email').value;
 			const pass = document.getElementById('auth-pass').value;
-			const { error } = await _supabase.auth.signUp({ email, password: pass });
+			const { error } = await _supabase.auth.signUp({
+				email,
+				password: pass,
+				options: { emailRedirectTo: 'https://314d00r.github.io/actbuilder' }
+			});
 			if (error) { alert('❌ ' + error.message); return; }
 			alert('✅ Перевір email для підтвердження!');
 		}
