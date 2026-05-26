@@ -309,16 +309,16 @@ select option { background: var(--surface2); }
     </nav>
     <div class="sidebar-footer">
 		<div style="display:flex;align-items:center;gap:8px;padding:8px 10px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);margin-bottom:8px;">
-			<div style="width:28px;height:28px;background:linear-gradient(135deg,var(--accent),#7c5cff);border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0">👤</div>
 			<div style="flex:1;min-width:0">
 				<div id="user-info" style="font-size:11px;font-weight:700;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis"></div>
 				<span class="save-indicator saved" id="save-indicator" style="font-size:10px">✓ Збережено</span>
 			</div>
-			<button onclick="authLogout()" title="Вийти" style="background:none;border:none;cursor:pointer;font-size:15px;color:var(--text3);padding:2px;flex-shrink:0" onmouseover="this.style.color='var(--red)'" onmouseout="this.style.color='var(--text3)'">🚪</button>
+			<button onclick="toggleTheme()" id="theme-btn" title="Тема" style="width:28px;height:28px;background:var(--surface3);border:1px solid var(--border2);border-radius:6px;cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center;flex-shrink:0" onmouseover="this.style.borderColor='var(--accent)'" onmouseout="this.style.borderColor='var(--border2)'">🌙</button>
+			<button onclick="authLogout()" title="Вийти" style="width:28px;height:28px;background:var(--surface3);border:1px solid var(--border2);border-radius:6px;cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center;flex-shrink:0" onmouseover="this.style.borderColor='var(--red)'" onmouseout="this.style.borderColor='var(--border2)'">🚪</button>
 		</div>
-		<button onclick="toggleTheme()" id="theme-btn" style="width:100%;background:var(--surface2);border:1px solid var(--border2);color:var(--text2);border-radius:6px;padding:6px 8px;font-size:11px;font-weight:600;cursor:pointer;font-family:'Manrope',sans-serif;display:flex;align-items:center;justify-content:center;gap:6px">🌙 Темна тема</button>
-		<div style="margin-top:6px;font-size:10px;color:var(--text3);text-align:center">Developed by V. Korchma</div>
+		<div style="font-size:10px;color:var(--text3);text-align:center">Developed by V. Korchma</div>
 	</div>
+	
 </aside>
 
 <div class="main">
@@ -1376,7 +1376,7 @@ select option { background: var(--surface2); }
         const isLight = document.documentElement.getAttribute('data-theme') === 'light';
         const newTheme = isLight ? '' : 'light';
         document.documentElement.setAttribute('data-theme', newTheme);
-        document.getElementById('theme-btn').textContent = newTheme === 'light' ? '🌙 Темна тема' : '☀️ Світла тема';
+        document.getElementById('theme-btn').textContent = newTheme === 'light' ? '🌙' : '☀️';
         localStorage.setItem('ev_theme', newTheme);
     }
 
@@ -1633,7 +1633,7 @@ select option { background: var(--surface2); }
         if(t) {
             document.documentElement.setAttribute('data-theme', t);
             const btn = document.getElementById('theme-btn');
-            if(btn) btn.textContent = t === 'light' ? '🌙 Темна тема' : '☀️ Світла тема';
+            if(btn) btn.textContent = t === 'light' ? '🌙' : '☀️';
         }
         loadData();
     };
