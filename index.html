@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ActBuilder · єВідновлення</title>
+	<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📋</text></svg>">
     <script src="https://unpkg.com/docxtemplater@3.37.11/build/docxtemplater.js"></script>
     <script src="https://unpkg.com/pizzip@3.1.4/dist/pizzip.js"></script>
     <script src="https://unpkg.com/pizzip@3.1.4/dist/pizzip-utils.js"></script>
@@ -307,12 +308,17 @@ select option { background: var(--surface2); }
         <button class="nav-item green-item" onclick="openPage('p-export',this)"><span class="nav-icon">📤</span><span>Висновки / Експорт</span></button>
     </nav>
     <div class="sidebar-footer">
-        <div id="user-info" style="margin-bottom:8px;font-size:11px;color:var(--text2)"></div>
-        <button class="btn btn-surface" style="width:100%;font-size:11px;margin-bottom:8px;" onclick="authLogout()">🚪 Вийти</button>
-        <span class="save-indicator saved" id="save-indicator">✓ Збережено</span>
-        <div style="margin-top:5px;font-size:10px;color:var(--text3)">Developed by V. Korchma</div>
-        <button onclick="toggleTheme()" id="theme-btn" style="margin-top:8px;width:100%;background:var(--surface2);border:1px solid var(--border2);color:var(--text2);border-radius:6px;padding:5px 8px;font-size:11px;font-weight:600;cursor:pointer;font-family:'Manrope',sans-serif">🌙 Темна тема</button>
-    </div>
+		<div style="display:flex;align-items:center;gap:8px;padding:8px 10px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);margin-bottom:8px;">
+			<div style="width:28px;height:28px;background:linear-gradient(135deg,var(--accent),#7c5cff);border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0">👤</div>
+			<div style="flex:1;min-width:0">
+				<div id="user-info" style="font-size:11px;font-weight:700;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis"></div>
+				<span class="save-indicator saved" id="save-indicator" style="font-size:10px">✓ Збережено</span>
+			</div>
+			<button onclick="authLogout()" title="Вийти" style="background:none;border:none;cursor:pointer;font-size:15px;color:var(--text3);padding:2px;flex-shrink:0" onmouseover="this.style.color='var(--red)'" onmouseout="this.style.color='var(--text3)'">🚪</button>
+		</div>
+		<button onclick="toggleTheme()" id="theme-btn" style="width:100%;background:var(--surface2);border:1px solid var(--border2);color:var(--text2);border-radius:6px;padding:6px 8px;font-size:11px;font-weight:600;cursor:pointer;font-family:'Manrope',sans-serif;display:flex;align-items:center;justify-content:center;gap:6px">🌙 Темна тема</button>
+		<div style="margin-top:6px;font-size:10px;color:var(--text3);text-align:center">Developed by V. Korchma</div>
+	</div>
 </aside>
 
 <div class="main">
