@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { authClient } from "@/lib/auth-client";
-import { ClipboardList } from "lucide-react";
+import { ClipboardList, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
@@ -17,115 +17,81 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
-  const handleLogin = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsLoading(true);
-
-    try {
-      const { error } = await authClient.signIn.email({
-        email,
-        password,
-      });
-
-      if (error) {
-        toast.error(error.message || "Помилка входу. Перевірте дані.");
-        return;
-      }
-
-      toast.success("Вхід успішний!");
-      router.push("/general");
-    } catch (err) {
-      toast.error("Щось пішло не так під час з'єднання з сервером.");
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleRegister = async () => {
-    if (password.length < 8) {
-      toast.error("Пароль має містити мінімум 8 символів");
-      return;
-    }
-
+  const handleAuth = async (type: "signin" | "signup") => {
     setIsLoading(true);
     try {
-      const { error } = await authClient.signUp.email({
-        email,
-        password,
-        name: email.split("@")[0],
-      });
+      const { error } =
+        type === "signin"
+          ? await authClient.signIn.email({ email, password })
+          : await authClient.signUp.email({ email, password, name: email.split("@")[0] });
 
       if (error) {
-        toast.error(error.message || "Помилка реєстрації");
-        return;
+        toast.error(error.message || "Помилка автентифікації");
+      } else {
+        toast.success(type === "signin" ? "Вхід успішний" : "Реєстрація успішна");
+        router.push("/general");
       }
-
-      toast.success("Реєстрація успішна!");
-      router.push("/general");
-    } catch (err) {
-      toast.error("Щось пішло не так під час реєстрації.");
+    } catch (e) {
+      toast.error("Помилка з'єднання");
     } finally {
       setIsLoading(false);
     }
   };
 
   return (
-    <div className="flex items-center justify-center min-h-screen w-full bg-background p-4">
-      <Card className="w-full max-w-sm shadow-2xl">
-        <CardHeader className="space-y-2">
-          <div className="flex items-center gap-2">
-            <ClipboardList className="text-primary" size={28} />
-            <CardTitle className="text-2xl font-extrabold">ActBuilder</CardTitle>
+    <div className="flex items-center justify-center min-h-screen bg-background bg-[radial-gradient(circle_at_top,_var(--tw-gradient-stops))] from-slate-900 via-background to-background p-4">
+      <Card className="w-full max-w-[400px] border-border bg-card/50 backdrop-blur-sm shadow-2xl">
+        <CardHeader className="space-y-1 pb-8">
+          <div className="flex items-center gap-3 mb-2">
+            <div className="p-2 bg-primary rounded-lg">
+              <ClipboardList className="text-primary-foreground" size={24} />
+            </div>
+            <CardTitle className="text-2xl font-bold tracking-tight">ActBuilder</CardTitle>
           </div>
-          <CardDescription className="uppercase tracking-wide font-medium text-xs">єВідновлення · Вхід</CardDescription>
+          <CardDescription className="text-muted-foreground text-xs uppercase tracking-widest font-semibold">
+            Система єВідновлення · Авторизація
+          </CardDescription>
         </CardHeader>
 
-        <form onSubmit={handleLogin}>
-          <CardContent className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="email" className="text-xs uppercase text-muted-foreground">
-                Email
-              </Label>
-              <Input
-                id="email"
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="your@email.com"
-                required
-              />
-            </div>
+        <CardContent className="space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="email">Email</Label>
+            <Input
+              id="email"
+              type="email"
+              placeholder="name@example.com"
+              className="bg-background/50"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="password">Пароль</Label>
+            <Input
+              id="password"
+              type="password"
+              placeholder="••••••••"
+              className="bg-background/50"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+            />
+          </div>
+        </CardContent>
 
-            <div className="space-y-2">
-              <Label htmlFor="password" className="text-xs uppercase text-muted-foreground">
-                Пароль
-              </Label>
-              <Input
-                id="password"
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="••••••••"
-                required
-              />
-            </div>
-          </CardContent>
-
-          <CardFooter className="flex gap-3">
-            <Button type="submit" className="flex-1 font-bold" disabled={isLoading}>
-              Увійти
-            </Button>
-            <Button
-              type="button"
-              variant="outline"
-              className="flex-1 font-bold"
-              onClick={handleRegister}
-              disabled={isLoading}
-            >
-              Реєстрація
-            </Button>
-          </CardFooter>
-        </form>
+        <CardFooter className="flex flex-col gap-3 pt-2">
+          <Button className="w-full font-bold h-11" onClick={() => handleAuth("signin")} disabled={isLoading}>
+            {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+            Увійти
+          </Button>
+          <Button
+            variant="ghost"
+            className="w-full text-muted-foreground hover:text-foreground"
+            onClick={() => handleAuth("signup")}
+            disabled={isLoading}
+          >
+            Створити акаунт
+          </Button>
+        </CardFooter>
       </Card>
     </div>
   );

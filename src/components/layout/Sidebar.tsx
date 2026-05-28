@@ -1,11 +1,11 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
 import { useActStore } from "@/store/useActStore";
-import { authClient } from "@/lib/auth-client";
+import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
 import {
-  ClipboardList,
   Home,
   Users,
   Building,
@@ -18,112 +18,99 @@ import {
   Table,
   FileOutput,
   LogOut,
-  Moon,
-  Sun,
+  ClipboardList,
 } from "lucide-react";
+import { authClient } from "@/lib/auth-client";
 
-const NAV_ITEMS = [
-  { group: "Документ" },
-  { href: "/general", icon: Home, label: "Загальні дані" },
-  { href: "/static", icon: Users, label: "Комісія", color: "text-orange hover:bg-orange/10" },
-  { href: "/techpass", icon: Building, label: "Техпаспорт" },
-  { group: "Пошкодження" },
-  { href: "/roof", icon: Warehouse, label: "Дах / Перекриття" },
-  { href: "/windows", icon: Square, label: "Вікна / Двері" },
-  { href: "/walls", icon: SquareDashed, label: "Стіни / Стеля" },
-  { href: "/floors", icon: Box, label: "Підлоги" },
-  { href: "/facade", icon: Building, label: "Фасад / Фунд." },
-  { href: "/eng", icon: Zap, label: "Інженерія" },
-  { group: "База" },
-  { href: "/database", icon: Database, label: "База об'єктів" },
-  { group: "Підсумок" },
-  { href: "/volumes", icon: Table, label: "Зведена таблиця" },
-  { href: "/export", icon: FileOutput, label: "Висновки / Експорт", color: "text-green hover:bg-greenDim" },
+const menuItems = [
+  {
+    group: "Документ",
+    items: [
+      { name: "Загальні дані", href: "/general", icon: Home },
+      { name: "Комісія", href: "/static", icon: Users },
+      { name: "Техпаспорт", href: "/techpass", icon: Building },
+    ],
+  },
+  {
+    group: "Пошкодження",
+    items: [
+      { name: "Дах / Перекриття", href: "/roof", icon: Warehouse },
+      { name: "Вікна / Двері", href: "/windows", icon: Square },
+      { name: "Стіни / Стеля", href: "/walls", icon: SquareDashed },
+      { name: "Підлоги", href: "/floors", icon: Box },
+      { name: "Фасад / Фунд.", href: "/facade", icon: Building },
+      { name: "Інженерія", href: "/eng", icon: Zap },
+    ],
+  },
+  {
+    group: "Підсумок",
+    items: [
+      { name: "База об'єктів", href: "/database", icon: Database },
+      { name: "Зведена таблиця", href: "/volumes", icon: Table },
+      { name: "Експорт", href: "/export", icon: FileOutput },
+    ],
+  },
 ];
 
 export default function Sidebar() {
   const pathname = usePathname();
-  const router = useRouter();
   const { totalSum } = useActStore();
-  const { data: session } = authClient.useSession();
-
-  const handleLogout = async () => {
-    await authClient.signOut();
-    router.push("/login");
-  };
-
-  const formattedSum = totalSum.toLocaleString("uk-UA", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
   return (
-    <aside className="w-[240px] bg-surface border-r border-border flex flex-col fixed inset-y-0 z-50 custom-scrollbar overflow-y-auto">
-      {/* Логотип */}
-      <div className="p-[18px_16px_14px] border-b border-border flex items-center gap-2.5">
-        <div className="w-[34px] h-[34px] bg-gradient-to-br from-accent to-[#7c5cff] rounded-[9px] flex items-center justify-center text-lg shadow-lg">
-          <ClipboardList className="text-white" size={20} />
+    <div className="fixed flex flex-col w-64 h-screen bg-card border-r border-border">
+      <div className="p-6 flex items-center gap-3">
+        <div className="bg-primary p-1.5 rounded-md">
+          <ClipboardList size={20} className="text-primary-foreground" />
         </div>
-        <div>
-          <div className="font-extrabold text-[15px] leading-tight">ActBuilder</div>
-          <div className="text-[10px] text-text3 font-medium tracking-wide uppercase">єВідновлення</div>
+        <span className="font-bold text-lg tracking-tight">ActBuilder</span>
+      </div>
+
+      <div className="px-4 mb-4">
+        <div className="bg-secondary/50 rounded-xl p-4 border border-border">
+          <p className="text-[10px] uppercase font-bold text-muted-foreground mb-1">Сума за актом</p>
+          <p className="text-xl font-black text-primary">
+            {totalSum.toLocaleString()} <span className="text-xs font-normal opacity-70">грн</span>
+          </p>
         </div>
       </div>
 
-      {/* Загальна сума */}
-      <div className="m-2.5 bg-greenDim border border-green/25 rounded-lg p-[10px_12px]">
-        <div className="text-[10px] text-text3 uppercase tracking-wide font-semibold mb-1">Загальна сума</div>
-        <div className="text-lg font-extrabold text-green flex items-center gap-1.5">
-          {formattedSum} <span className="text-[11px] font-medium text-text3">грн</span>
-        </div>
-      </div>
-
-      {/* Навігація */}
-      <nav className="p-[6px_8px] flex-1">
-        {NAV_ITEMS.map((item, idx) => {
-          if (item.group) {
-            return (
-              <div key={idx} className="text-[10px] text-text3 uppercase tracking-wide font-bold p-[8px_8px_3px] mt-2">
-                {item.group}
-              </div>
-            );
-          }
-
-          const isActive = pathname === item.href;
-          const Icon = item.icon!;
-
-          return (
-            <Link
-              key={item.href}
-              href={item.href!}
-              className={`flex items-center gap-2.5 p-[8px_10px] rounded-lg text-[13px] font-medium transition-colors duration-150 mb-0.5
-                ${
-                  isActive
-                    ? "bg-accentGlow text-accent2 border border-accent/25"
-                    : `text-text2 hover:bg-surface2 hover:text-textMain ${item.color || ""}`
-                }`}
-            >
-              <Icon size={16} />
-              {item.label}
-            </Link>
-          );
-        })}
+      <nav className="flex-1 px-4 overflow-y-auto space-y-6 py-4 custom-scrollbar">
+        {menuItems.map((group) => (
+          <div key={group.group}>
+            <h3 className="px-2 mb-2 text-[10px] uppercase font-bold text-muted-foreground/60 tracking-widest">
+              {group.group}
+            </h3>
+            <div className="space-y-1">
+              {group.items.map((item) => (
+                <Link key={item.href} href={item.href}>
+                  <span
+                    className={cn(
+                      "flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition-colors",
+                      pathname === item.href
+                        ? "bg-primary text-primary-foreground shadow-lg shadow-primary/20"
+                        : "text-muted-foreground hover:bg-secondary hover:text-foreground",
+                    )}
+                  >
+                    <item.icon size={18} />
+                    {item.name}
+                  </span>
+                </Link>
+              ))}
+            </div>
+          </div>
+        ))}
       </nav>
 
-      {/* Футер */}
-      <div className="p-[10px_14px] border-t border-border mt-auto">
-        <div className="flex items-center gap-2 p-[8px_10px] bg-surface2 border border-border rounded-lg mb-2">
-          <div className="flex-1 min-w-0">
-            <div className="text-[11px] font-bold truncate">{session?.user?.email || "Завантаження..."}</div>
-            <div className="text-[10px] text-green font-semibold flex items-center gap-1">✓ Готово</div>
-          </div>
-          <button
-            onClick={handleLogout}
-            className="w-7 h-7 bg-surface3 border border-border2 rounded-md flex items-center justify-center hover:border-red transition-colors"
-            title="Вийти"
-          >
-            <LogOut size={14} className="text-text2 hover:text-red" />
-          </button>
-        </div>
-        <div className="text-[10px] text-text3 text-center">Developed by V. Korchma</div>
+      <div className="p-4 border-t border-border bg-card/80 backdrop-blur-md">
+        <Button
+          variant="ghost"
+          className="w-full justify-start text-muted-foreground hover:text-destructive"
+          onClick={() => authClient.signOut()}
+        >
+          <LogOut size={18} className="mr-3" />
+          Вийти
+        </Button>
       </div>
-    </aside>
+    </div>
   );
 }
