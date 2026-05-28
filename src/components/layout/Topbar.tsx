@@ -23,10 +23,10 @@ export default function Topbar() {
   const title = PAGE_TITLES[pathname] || "ActBuilder";
 
   return (
-    <header className="h-[60px] bg-surface border-b border-border flex items-center justify-between px-6 sticky top-0 z-40">
+    <header className="h-15 bg-surface backdrop-blur-xl shadow-md border-b border-border flex items-center justify-between px-6 sticky top-0 z-40">
       <div>
         <h1 className="text-base font-bold">{title}</h1>
-        <div className="text-[11px] text-text3 mt-[1px]">ActBuilder · єВідновлення</div>
+        <div className="text-[11px] text-text3 mt-px">ActBuilder · єВідновлення</div>
       </div>
 
       <div className="flex items-center gap-2.5">
@@ -34,7 +34,7 @@ export default function Topbar() {
           href="https://docs.google.com/document/d/1iVmeanEzfIvx4yjna28QHMFSGCaN8J-GzgyJZ3ZUn7U/edit"
           target="_blank"
           rel="noreferrer"
-          className="flex items-center gap-1.5 bg-surface2 border border-border2 text-text2 px-[13px] py-1.5 rounded-lg text-xs font-semibold hover:border-accent hover:text-accent2 transition-colors"
+          className="flex items-center gap-1.5 bg-surface2 border border-border2 text-text2 px-3.25 py-1.5 rounded-lg text-xs font-semibold hover:border-accent hover:text-accent2 transition-colors"
         >
           <BookOpen size={14} />
           Інструкція

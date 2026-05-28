@@ -58,7 +58,7 @@ export default function Sidebar() {
 
   return (
     <div className="fixed flex flex-col w-64 h-screen bg-card border-r border-border">
-      <div className="p-6 flex items-center gap-3">
+      <div className="p-5 flex items-center gap-3">
         <div className="bg-primary p-1.5 rounded-md">
           <ClipboardList size={20} className="text-primary-foreground" />
         </div>
