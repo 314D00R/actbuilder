@@ -42,7 +42,6 @@ function SmartSelect({
   const [isCustom, setIsCustom] = useState(false);
 
   useEffect(() => {
-    // Автоматично вмикаємо кастомний режим, якщо значення не порожнє і його немає у списку
     if (value && value !== "-" && !options.includes(value)) {
       setIsCustom(true);
     } else if (options.includes(value) || value === "-") {
@@ -158,7 +157,6 @@ export default function GeneralPage() {
 
   return (
     <div className="space-y-6 max-w-4xl mx-auto pb-12">
-      {/* 1. ОСНОВА ДОКУМЕНТА */}
       <Card className="border-l-4 border-l-primary bg-card/60 backdrop-blur-sm shadow-md">
         <CardHeader className="pb-4">
           <CardTitle className="text-sm font-bold flex items-center gap-2">
@@ -187,7 +185,6 @@ export default function GeneralPage() {
         </CardContent>
       </Card>
 
-      {/* 2. АДРЕСА ОБ'ЄКТА */}
       <Card className="border-l-4 border-l-primary bg-card/60 backdrop-blur-sm shadow-md">
         <CardHeader className="pb-4">
           <CardTitle className="text-sm font-bold flex items-center gap-2">
@@ -263,7 +260,6 @@ export default function GeneralPage() {
         </CardContent>
       </Card>
 
-      {/* 3. ВЛАСНИКИ / УПРАВИТЕЛІ */}
       <Card className="border-l-4 border-l-primary bg-card/60 backdrop-blur-sm shadow-md">
         <CardHeader className="pb-4">
           <CardTitle className="text-sm font-bold flex items-center gap-2">
@@ -375,7 +371,6 @@ export default function GeneralPage() {
         </CardContent>
       </Card>
 
-      {/* 4. КРИТЕРІЇ ОЦІНКИ */}
       <Card className="bg-card/60 backdrop-blur-sm shadow-md">
         <CardHeader className="pb-4">
           <CardTitle className="text-sm font-bold flex items-center gap-2">
@@ -422,7 +417,6 @@ export default function GeneralPage() {
         </CardContent>
       </Card>
 
-      {/* 5. СЛУЖБОВІ НОТАТКИ */}
       <Card className="bg-card/60 backdrop-blur-sm shadow-md">
         <CardHeader className="pb-4">
           <CardTitle className="text-sm font-bold flex items-center gap-2">

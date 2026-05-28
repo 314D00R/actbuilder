@@ -174,7 +174,6 @@ export default function TechpassPage() {
 
   return (
     <div className="space-y-6 max-w-5xl mx-auto pb-12">
-      {/* 1. ЗАГАЛЬНІ ХАРАКТЕРИСТИКИ */}
       <Card className="border-l-4 border-l-primary bg-card/60 backdrop-blur-sm shadow-md">
         <CardHeader className="pb-4">
           <CardTitle className="text-sm font-bold flex items-center gap-2">
@@ -184,7 +183,7 @@ export default function TechpassPage() {
         <CardContent className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="space-y-2 md:col-span-1">
-              <Label className="text-xs uppercase text-muted-foreground">Пам'ятка спадщини</Label>
+              <Label className="text-xs uppercase text-muted-foreground">Пам&apos;ятка спадщини</Label>
               <Input
                 type="text"
                 value={inputs.heritage_info !== undefined ? inputs.heritage_info : "відсутні"}
@@ -296,7 +295,6 @@ export default function TechpassPage() {
         </CardContent>
       </Card>
 
-      {/* 2. КОНСТРУКТИВНІ ЕЛЕМЕНТИ (БЛОКИ БУДІВЕЛЬ) */}
       <Card className="border-l-4 border-l-primary bg-card/60 backdrop-blur-sm shadow-md">
         <CardHeader className="pb-4">
           <CardTitle className="text-sm font-bold flex items-center gap-2">
@@ -331,7 +329,6 @@ export default function TechpassPage() {
                 )}
               </div>
 
-              {/* Ряд 1 */}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4 w-full">
                 <SmartSelect
                   label="Фундаменти"
@@ -353,7 +350,6 @@ export default function TechpassPage() {
                 />
               </div>
 
-              {/* Ряд 2 */}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4 w-full">
                 <SmartSelect
                   label="Перекриття (1 пов.)"
@@ -375,7 +371,6 @@ export default function TechpassPage() {
                 />
               </div>
 
-              {/* Ряд 3 */}
               <div className="grid grid-cols-1 md:grid-cols-4 gap-4 w-full">
                 <SmartSelect
                   label="Покриття"
@@ -403,7 +398,6 @@ export default function TechpassPage() {
                 />
               </div>
 
-              {/* Ряд 4 */}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4 w-full">
                 <SmartSelect
                   label="Фасад"
@@ -425,7 +419,6 @@ export default function TechpassPage() {
                 />
               </div>
 
-              {/* Інженерія */}
               <div className="grid grid-cols-2 md:grid-cols-5 gap-3 p-4 mt-4 bg-background border border-border rounded-lg shadow-inner w-full">
                 <SmartSelect
                   label="Електро"

@@ -13,7 +13,6 @@ export default function StaticDataPage() {
 
   return (
     <div className="space-y-6 max-w-4xl mx-auto pb-12">
-      {/* Алерт */}
       <div className="bg-orange-500/10 border border-orange-500/20 text-orange-500 p-4 rounded-xl flex gap-3 items-start shadow-sm">
         <AlertTriangle size={20} className="shrink-0 mt-0.5" />
         <div>
@@ -25,7 +24,6 @@ export default function StaticDataPage() {
         </div>
       </div>
 
-      {/* 1. Рішення / Розпорядження */}
       <Card className="border-l-4 border-l-orange-500 bg-card/60 backdrop-blur-sm shadow-md">
         <CardHeader className="pb-4">
           <CardTitle className="text-sm font-bold flex items-center gap-2">
@@ -66,7 +64,6 @@ export default function StaticDataPage() {
         </CardContent>
       </Card>
 
-      {/* 2. Склад комісії */}
       <Card className="border-l-4 border-l-orange-500 bg-card/60 backdrop-blur-sm shadow-md">
         <CardHeader className="pb-4">
           <CardTitle className="text-sm font-bold flex items-center gap-2">
@@ -129,7 +126,6 @@ export default function StaticDataPage() {
         </CardContent>
       </Card>
 
-      {/* 3. Підписи комісії */}
       <Card className="border-l-4 border-l-orange-500 bg-card/60 backdrop-blur-sm shadow-md">
         <CardHeader className="pb-4">
           <CardTitle className="text-sm font-bold flex items-center gap-2">
