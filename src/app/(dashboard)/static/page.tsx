@@ -6,24 +6,27 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { AlertTriangle, FileSignature, Users, PenTool, Plus, Trash2 } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 export default function StaticDataPage() {
   const store = useStaticStore();
 
   return (
     <div className="space-y-6 max-w-4xl mx-auto pb-12">
+      {/* Алерт */}
       <div className="bg-orange-500/10 border border-orange-500/20 text-orange-500 p-4 rounded-xl flex gap-3 items-start shadow-sm">
         <AlertTriangle size={20} className="shrink-0 mt-0.5" />
         <div>
           <h3 className="font-bold text-sm mb-1">Сталі дані (Не видаляються)</h3>
           <p className="text-xs opacity-90 leading-relaxed">
-            Ці дані залишаються збереженими навіть при створенні нового об&apos;єкта. Заповніть їх один раз для своєї
-            робочої групи чи комісії.
+            Ці дані залишаються збереженими навіть при створенні нового об'єкта. Заповніть їх один раз для своєї робочої
+            групи чи комісії.
           </p>
         </div>
       </div>
 
-      <Card className="border-l-4 border-l-orange-500 bg-card/60 backdrop-blur-sm">
+      {/* 1. Рішення / Розпорядження */}
+      <Card className="border-l-4 border-l-orange-500 bg-card/60 backdrop-blur-sm shadow-md">
         <CardHeader className="pb-4">
           <CardTitle className="text-sm font-bold flex items-center gap-2">
             <FileSignature size={18} className="text-orange-500" /> Рішення / Розпорядження
@@ -37,6 +40,7 @@ export default function StaticDataPage() {
               placeholder="249"
               value={store.order_no}
               onChange={(e) => store.setField("order_no", e.target.value)}
+              className="w-full"
             />
           </div>
           <div className="space-y-2">
@@ -46,6 +50,7 @@ export default function StaticDataPage() {
               placeholder="08.09.2023"
               value={store.order_date}
               onChange={(e) => store.setField("order_date", e.target.value)}
+              className="w-full"
             />
           </div>
           <div className="space-y-2 md:col-span-2">
@@ -55,12 +60,14 @@ export default function StaticDataPage() {
               placeholder="«Про створення комісії...»"
               value={store.order_name}
               onChange={(e) => store.setField("order_name", e.target.value)}
+              className="w-full"
             />
           </div>
         </CardContent>
       </Card>
 
-      <Card className="border-l-4 border-l-orange-500 bg-card/60 backdrop-blur-sm">
+      {/* 2. Склад комісії */}
+      <Card className="border-l-4 border-l-orange-500 bg-card/60 backdrop-blur-sm shadow-md">
         <CardHeader className="pb-4">
           <CardTitle className="text-sm font-bold flex items-center gap-2">
             <Users size={18} className="text-orange-500" /> Склад комісії (для шапки Акта)
@@ -75,6 +82,7 @@ export default function StaticDataPage() {
                 placeholder="Ігор Сурнін"
                 value={store.comm_head_nom}
                 onChange={(e) => store.setField("comm_head_nom", e.target.value)}
+                className="w-full"
               />
             </div>
             <div className="space-y-2">
@@ -84,6 +92,7 @@ export default function StaticDataPage() {
                 placeholder="Ігоря Сурніна"
                 value={store.comm_head_gen}
                 onChange={(e) => store.setField("comm_head_gen", e.target.value)}
+                className="w-full"
               />
             </div>
             <div className="space-y-2">
@@ -93,6 +102,7 @@ export default function StaticDataPage() {
                 placeholder="Руслана Саїнчука"
                 value={store.comm_deputy}
                 onChange={(e) => store.setField("comm_deputy", e.target.value)}
+                className="w-full"
               />
             </div>
             <div className="space-y-2">
@@ -102,6 +112,7 @@ export default function StaticDataPage() {
                 placeholder="Євгена Сологуба"
                 value={store.comm_sec}
                 onChange={(e) => store.setField("comm_sec", e.target.value)}
+                className="w-full"
               />
             </div>
           </div>
@@ -112,36 +123,40 @@ export default function StaticDataPage() {
               placeholder="Ольги Субботкіної, Олени Липач..."
               value={store.comm_members}
               onChange={(e) => store.setField("comm_members", e.target.value)}
+              className="w-full"
             />
           </div>
         </CardContent>
       </Card>
 
-      <Card className="border-l-4 border-l-orange-500 bg-card/60 backdrop-blur-sm">
+      {/* 3. Підписи комісії */}
+      <Card className="border-l-4 border-l-orange-500 bg-card/60 backdrop-blur-sm shadow-md">
         <CardHeader className="pb-4">
           <CardTitle className="text-sm font-bold flex items-center gap-2">
             <PenTool size={18} className="text-orange-500" /> Підписи комісії (В кінці Акта)
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          {store.signs.map((sign, index) => (
+          {store.signs.map((sign) => (
             <div
               key={sign.id}
               className="flex flex-col md:flex-row items-end gap-3 p-4 bg-secondary/30 border border-border rounded-xl"
             >
               <div className="space-y-2 w-full md:w-1/3">
                 <Label className="text-xs uppercase text-muted-foreground">Роль</Label>
-                <select
-                  className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm text-foreground focus-visible:outline-none"
-                  value={sign.role}
-                  onChange={(e) => store.updateSign(sign.id, "role", e.target.value)}
-                >
-                  <option value="Голова комісії">Голова комісії</option>
-                  <option value="Заступник голови комісії">Заступник голови комісії</option>
-                  <option value="Секретар комісії">Секретар комісії</option>
-                  <option value="Член комісії">Член комісії</option>
-                </select>
+                <Select value={sign.role} onValueChange={(val) => store.updateSign(sign.id, "role", val)}>
+                  <SelectTrigger className="w-full bg-background">
+                    <SelectValue placeholder="Оберіть роль" />
+                  </SelectTrigger>
+                  <SelectContent position="popper" side="bottom" className="max-h-[300px]">
+                    <SelectItem value="Голова комісії">Голова комісії</SelectItem>
+                    <SelectItem value="Заступник голови комісії">Заступник голови комісії</SelectItem>
+                    <SelectItem value="Секретар комісії">Секретар комісії</SelectItem>
+                    <SelectItem value="Член комісії">Член комісії</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
+
               <div className="space-y-2 w-full md:flex-1">
                 <Label className="text-xs uppercase text-muted-foreground">ПІБ (Називний)</Label>
                 <Input
@@ -149,6 +164,7 @@ export default function StaticDataPage() {
                   placeholder="Ольга Субботкіна"
                   value={sign.name}
                   onChange={(e) => store.updateSign(sign.id, "name", e.target.value)}
+                  className="w-full"
                 />
               </div>
               <Button
