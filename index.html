@@ -985,6 +985,62 @@
         border-radius: 10px;
       }
 
+      .act-toggle { display:inline-flex; cursor:pointer; user-select:none; }
+      .act-toggle input { display:none; }
+      .act-toggle-track {
+        position:relative; display:inline-flex; align-items:center;
+        width:160px; height:28px; border-radius:14px;
+        background:var(--surface2); border:1.5px solid var(--border2);
+        transition:background .25s, border-color .25s; overflow:hidden;
+      }
+      .act-toggle input:checked ~ .act-toggle-track {
+        background:var(--accent-glow); border-color:var(--accent);
+      }
+      .act-toggle-thumb {
+        position:absolute; left:3px; width:22px; height:22px;
+        border-radius:50%; background:var(--text3);
+        transition:transform .25s cubic-bezier(.4,0,.2,1), background .25s; z-index:2;
+      }
+      .act-toggle input:checked ~ .act-toggle-track .act-toggle-thumb {
+        transform:translateX(132px); background:var(--accent);
+      }
+      .act-toggle-ton, .act-toggle-toff {
+        position:absolute; font-size:11px; font-weight:700;
+        white-space:nowrap; transition:opacity .2s; pointer-events:none;
+      }
+      .act-toggle-ton  { left:10px;  color:var(--accent2);  opacity:0; }
+      .act-toggle-toff { right:8px; color:var(--text3); opacity:1; }
+      .act-toggle input:checked ~ .act-toggle-track .act-toggle-ton  { opacity:1; }
+      .act-toggle input:checked ~ .act-toggle-track .act-toggle-toff { opacity:0; }
+
+      .wall-toggle { display:inline-flex; cursor:pointer; user-select:none; }
+      .wall-toggle input { display:none; }
+      .wall-toggle-track {
+        position:relative; display:inline-flex; align-items:center;
+        width:130px; height:28px; border-radius:14px;
+        background:var(--surface2); border:1.5px solid var(--border2);
+        transition:background .25s, border-color .25s; overflow:hidden;
+      }
+      .wall-toggle input:checked ~ .wall-toggle-track {
+        background:rgba(255,138,60,.15); border-color:var(--orange);
+      }
+      .wall-toggle-thumb {
+        position:absolute; left:3px; width:22px; height:22px;
+        border-radius:50%; background:var(--text3);
+        transition:transform .25s cubic-bezier(.4,0,.2,1), background .25s; z-index:2;
+      }
+      .wall-toggle input:checked ~ .wall-toggle-track .wall-toggle-thumb {
+        transform:translateX(102px); background:var(--orange);
+      }
+      .wall-toggle-ton, .wall-toggle-toff {
+        position:absolute; font-size:11px; font-weight:700;
+        white-space:nowrap; transition:opacity .2s; pointer-events:none;
+      }
+      .wall-toggle-ton  { left:10px; color:var(--orange); opacity:0; }
+      .wall-toggle-toff { right:8px; color:var(--text3);  opacity:1; }
+      .wall-toggle input:checked ~ .wall-toggle-track .wall-toggle-ton  { opacity:1; }
+      .wall-toggle input:checked ~ .wall-toggle-track .wall-toggle-toff { opacity:0; }
+
       @media (max-width: 860px) {
         .sidebar {
           width: 52px;
@@ -1485,44 +1541,7 @@
         <!-- PAGE: TECHPASS -->
         <div id="p-techpass" class="page">
           <div class="card accent">
-            <div class="card-header"><div class="card-title">📐 Загальні характеристики</div></div>
-            <div class="form-row" style="flex-wrap: nowrap">
-              <div style="flex: 3; min-width: 0">
-                <label>Пам'ятка спадщини</label
-                ><input type="text" id="heritage_info" value="відсутні" oninput="saveData()" />
-              </div>
-              <div style="flex: 0 0 120px">
-                <label>Рік будівництва</label
-                ><input type="text" id="year_built" placeholder="1990" oninput="saveData()" />
-              </div>
-              <div style="flex: 0 0 120px; align-self: flex-end">
-                <label>Заг. площа, м²</label
-                ><input type="text" id="total_area" placeholder="100" oninput="saveData()" />
-              </div>
-            </div>
-            <div class="form-row" style="flex-wrap: nowrap">
-              <div style="flex: 2; min-width: 0">
-                <label>Поверхів (загалом)</label><input type="text" id="floors_total" value="1" oninput="saveData()" />
-              </div>
-              <div style="flex: 0 0 90px">
-                <label>Наземних</label><input type="text" id="floors_over" placeholder="1" oninput="saveData()" />
-              </div>
-              <div style="flex: 0 0 100px">
-                <label>Підземних</label><input type="text" id="floors_under" value="відсутні" oninput="saveData()" />
-              </div>
-              <div style="flex: 0 0 100px">
-                <label>Мансардних</label><input type="text" id="mansard" value="відсутні" oninput="saveData()" />
-              </div>
-              <div style="flex: 0 0 100px">
-                <label>К-сть секцій</label><input type="text" id="sections" value="відсутні" oninput="saveData()" />
-              </div>
-              <div style="flex: 0 0 110px">
-                <label>К-сть квартир</label><input type="text" id="apartments" value="відсутні" oninput="saveData()" />
-              </div>
-              <div style="flex: 0 0 120px; align-self: flex-end">
-                <label>нежитлових, м²</label><input type="text" id="built_in_area" value="0" oninput="saveData()" />
-              </div>
-            </div>
+            <div class="card-header"><div class="card-title">📋 Правовстановлюючі документи</div></div>
             <div class="form-row">
               <div class="f-full">
                 <label>Правовстановлюючі документи</label
@@ -1537,10 +1556,10 @@
           </div>
           <div class="card accent">
             <div class="card-header">
-              <div class="card-title">🏗️ Конструктивні елементи (по будівлях / літерах)</div>
+              <div class="card-title">🏗️ Характеристики та конструктивні елементи (по будівлях / літерах)</div>
             </div>
             <p style="font-size: 12px; color: var(--text3); margin-bottom: 12px">
-              Оберіть варіант або натисніть "✏ Вписати свій..." для нестандартного.
+              Кожна літера містить загальні характеристики та конструктивні елементи. Оберіть варіант або натисніть "✏ Вписати свій..." для нестандартного.
             </p>
             <div id="buildings-container"></div>
             <button class="btn-dashed" onclick="addBuilding()">＋ Додати будівлю / літеру</button>
@@ -1558,7 +1577,10 @@
             <button class="btn-dashed" onclick="addZone('roof')">＋ Додати зону (Дах)</button>
           </div>
           <div class="card">
-            <div class="card-header"><div class="card-title">📏 Крокви (Погонні метри)</div></div>
+            <div class="card-header">
+              <div class="card-title">📏 Крокви (Погонні метри)</div>
+              <select id="bld_sel_krokvy" class="bld-select bld-select-inline" onchange="saveData()"></select>
+            </div>
             <div class="work-item-row">
               <div class="wi-top">
                 <span class="wi-label">п.2. Заміна кроквяних ніг із брусів</span>
@@ -1606,7 +1628,10 @@
             <button class="btn-dashed" onclick="addZone('wall')">＋ Додати зону (Стіни)</button>
           </div>
           <div class="card">
-            <div class="card-header"><div class="card-title">🔨 Стіни: Конструктивні роботи</div></div>
+            <div class="card-header">
+              <div class="card-title">🔨 Стіни: Конструктивні роботи</div>
+              <select id="bld_sel_walls_const" class="bld-select bld-select-inline" onchange="saveData()"></select>
+            </div>
             <div class="work-item-row">
               <div class="wi-top">
                 <span class="wi-label">п.20. Розбирання пошкоджених стін</span
@@ -1665,7 +1690,10 @@
             <button class="btn-dashed" onclick="addZone('flr')">＋ Додати зону (Підлога)</button>
           </div>
           <div class="card">
-            <div class="card-header"><div class="card-title">📏 Окремі роботи (Погонні метри)</div></div>
+            <div class="card-header">
+              <div class="card-title">📏 Окремі роботи (Погонні метри)</div>
+              <select id="bld_sel_flr_manual" class="bld-select bld-select-inline" onchange="saveData()"></select>
+            </div>
             <div class="work-item-row">
               <div class="wi-top">
                 <span class="wi-label">п.43. Заміна окремих дощок у підлогах</span
@@ -2340,8 +2368,14 @@
             if (document.getElementById("sign_name_" + id)?.value.trim()) signHasName = true;
           });
           if (!signHasName) warnings.push("Підписи комісії — жодного підпису не додано");
-          if (!document.getElementById("year_built")?.value.trim()) warnings.push("Рік будівництва — незаповнений");
-          if (!document.getElementById("total_area")?.value.trim()) warnings.push("Загальна площа — незаповнена");
+          let yearFilled = false, areaFilled = false;
+          document.querySelectorAll(".bld-block").forEach((b) => {
+            const id = b.dataset.id;
+            if (document.getElementById("bld_year_built_" + id)?.value.trim()) yearFilled = true;
+            if (document.getElementById("bld_total_area_" + id)?.value.trim()) areaFilled = true;
+          });
+          if (!yearFilled) warnings.push("Рік будівництва — незаповнений (у жодній літері)");
+          if (!areaFilled) warnings.push("Загальна площа — незаповнена (у жодній літері)");
           if (!document.getElementById("legal_docs")?.value.trim())
             warnings.push("Правовстановлюючі документи — незаповнені");
           let bldFilled = false;
@@ -2430,6 +2464,22 @@
                 <input type="text" class="bld-name block-title-input" id="bld_name_${n}" placeholder="Літера (напр. Літ. 2Х)" oninput="updateBuildingDropdowns();saveData()">
                 ${n > 1 ? `<button class="block-del-btn" onclick="document.getElementById('bld-block-${n}').remove();updateBuildingDropdowns();saveData()">✖</button>` : ""}
             </div>
+            <div style="font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:0.6px;padding:4px 0 8px;border-bottom:1px solid var(--border);margin-bottom:10px">📐 Загальні характеристики</div>
+            <div class="form-row" style="flex-wrap:nowrap">
+                <div style="flex:3;min-width:0"><label>Пам'ятка спадщини</label><input type="text" id="bld_heritage_${n}" value="відсутні" oninput="saveData()"></div>
+                <div style="flex:0 0 120px"><label>Рік будівництва</label><input type="text" id="bld_year_built_${n}" placeholder="1990" oninput="saveData()"></div>
+                <div style="flex:0 0 120px"><label>Заг. площа, м²</label><input type="text" id="bld_total_area_${n}" placeholder="100" oninput="saveData()"></div>
+            </div>
+            <div class="form-row" style="flex-wrap:nowrap">
+                <div style="flex:2;min-width:0"><label>Поверхів (загалом)</label><input type="text" id="bld_floors_total_${n}" value="1" oninput="saveData()"></div>
+                <div style="flex:0 0 90px"><label>Наземних</label><input type="text" id="bld_floors_over_${n}" placeholder="1" oninput="saveData()"></div>
+                <div style="flex:0 0 100px"><label>Підземних</label><input type="text" id="bld_floors_under_${n}" value="відсутні" oninput="saveData()"></div>
+                <div style="flex:0 0 100px"><label>Мансардних</label><input type="text" id="bld_mansard_${n}" value="відсутні" oninput="saveData()"></div>
+                <div style="flex:0 0 100px"><label>К-сть секцій</label><input type="text" id="bld_sections_${n}" value="відсутні" oninput="saveData()"></div>
+                <div style="flex:0 0 110px"><label>К-сть квартир</label><input type="text" id="bld_apartments_${n}" value="відсутні" oninput="saveData()"></div>
+                <div style="flex:0 0 120px"><label>нежитлових, м²</label><input type="text" id="bld_built_in_area_${n}" value="0" oninput="saveData()"></div>
+            </div>
+            <div style="font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:0.6px;padding:10px 0 8px;border-bottom:1px solid var(--border);margin-bottom:10px">🏗️ Конструктивні елементи</div>
             <div class="form-row"><div class="f"><label>Фундаменти</label><select id="bld_fnd_${n}" onchange="checkCustom(this)">${optFnd}</select></div><div class="f"><label>Стіни зовнішні</label><select id="bld_wall_${n}" onchange="checkCustom(this)">${optWall}</select></div><div class="f"><label>Стіни внутрішні</label><select id="bld_in_wall_${n}" onchange="checkCustom(this)">${optInWall}</select></div></div>
             <div class="form-row"><div class="f"><label>Перекриття (1 пов.)</label><select id="bld_over1_${n}" onchange="checkCustom(this)">${optOver}</select></div><div class="f"><label>Перекриття (Міжпов.)</label><select id="bld_overm_${n}" onchange="checkCustom(this)">${optOver}</select></div><div class="f"><label>Перекриття (Горище)</label><select id="bld_overa_${n}" onchange="checkCustom(this)">${optOver}</select></div></div>
             <div class="form-row"><div class="f"><label>Покриття</label><select id="bld_cover_${n}" onchange="checkCustom(this)">${optCover}</select></div><div class="f"><label>Покрівлі</label><select id="bld_roof_${n}" onchange="checkCustom(this)">${optRoof}</select></div><div class="f"><label>Вікна</label><select id="bld_win_${n}" onchange="checkCustom(this)">${optWin}</select></div><div class="f"><label>Двері вхідні</label><select id="bld_door_${n}" onchange="checkCustom(this)">${optDoor}</select></div></div>
@@ -2472,6 +2522,14 @@
                 <span class="block-num">Блок №${id}</span>
                 <select id="bld_sel_win_${id}" class="bld-select bld-select-inline" onchange="saveData()">${getBuildingOptions()}</select>
                 <input type="text" id="name_win_${id}" class="block-title-input" placeholder="Назва зони (напр. Вікна м/п кімната 1)" oninput="saveData()">
+                <label class="act-toggle" title="Акт + чеклист / Тільки чеклист" style="flex-shrink:0">
+                  <input type="checkbox" id="in_act_win_${id}" checked onchange="saveData()">
+                  <span class="act-toggle-track">
+                    <span class="act-toggle-thumb"></span>
+                    <span class="act-toggle-ton">📋 Акт + чеклист</span>
+                    <span class="act-toggle-toff">🧮 Тільки чеклист</span>
+                  </span>
+                </label>
                 ${id > 1 ? `<button class="block-del-btn" onclick="document.getElementById('win-block-${id}').remove();calcAll()">✖</button>` : ""}
             </div>
             <div class="form-row" style="align-items:flex-end;flex-wrap:wrap">
@@ -2592,6 +2650,14 @@
                 <span class="block-num">${title} №${id}</span>
                 <select id="bld_sel_${type}_${id}" class="bld-select bld-select-inline" onchange="saveData()">${getBuildingOptions()}</select>
                 <input type="text" id="name_${type}_${id}" class="block-title-input" placeholder="Назва зони пошкодження" oninput="saveData()">
+                <label class="act-toggle" title="Акт + чеклист / Тільки чеклист" style="flex-shrink:0">
+                  <input type="checkbox" id="in_act_${type}_${id}" checked onchange="saveData()">
+                  <span class="act-toggle-track">
+                    <span class="act-toggle-thumb"></span>
+                    <span class="act-toggle-ton">📋 Акт + чеклист</span>
+                    <span class="act-toggle-toff">🧮 Тільки чеклист</span>
+                  </span>
+                </label>
                 ${id > 1 ? `<button class="block-del-btn" onclick="document.getElementById('zone-${type}-${id}').remove();calcAll()">✖</button>` : ""}
             </div>
             <div class="calc-strip">
@@ -2603,14 +2669,16 @@
                 <span class="math">=</span>
                 <label>ПЛОЩА:</label><input type="number" id="res_${type}_${id}" class="result-input" oninput="calcAll()" placeholder="0.00"> <span style="color:var(--text3);font-size:12px">м²</span>
             </div>
-            ${
-              type === "wall"
-                ? `<div style="display:flex;gap:16px;margin-bottom:8px;padding:8px 12px;background:var(--surface3);border-radius:var(--radius-sm)">
-                <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:12px;font-weight:600;color:var(--text2)"><input type="radio" name="wall_side_${id}" value="internal" checked onchange="saveData()"> 🏠 Внутрішні</label>
-                <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:12px;font-weight:600;color:var(--text2)"><input type="radio" name="wall_side_${id}" value="external" onchange="saveData()"> 🏛️ Зовнішні</label>
-            </div>`
-                : ""
-            }
+            ${type === "wall" ? `<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
+                <label class="wall-toggle" title="Внутрішні / Зовнішні стіни">
+                  <input type="checkbox" id="wall_side_toggle_${id}" onchange="saveData()">
+                  <span class="wall-toggle-track">
+                    <span class="wall-toggle-thumb"></span>
+                    <span class="wall-toggle-ton">🏛️ Зовнішні</span>
+                    <span class="wall-toggle-toff">🏠 Внутрішні</span>
+                  </span>
+                </label>
+            </div>` : ""}
             <div class="cb-grid">${cbsHTML}</div>
             <input type="text" id="desc_${type}_${id}" style="width:100%;margin-top:9px" placeholder="Опис пошкодження для Акта..." oninput="saveData()">
         </div>`;
@@ -2729,6 +2797,10 @@
               const el = document.getElementById(id);
               if (el) data.inputs[id] = el.value;
             });
+            ["bld_sel_krokvy", "bld_sel_walls_const", "bld_sel_flr_manual"].forEach((id) => {
+              const el = document.getElementById(id);
+              if (el) data.inputs[id] = el.value;
+            });
             ["l_c20", "h_c20", "d_c20", "t_c20", "l_c21", "h_c21", "d_c21", "t_c21", "l_c22", "w_c22", "t_c22"].forEach(
               (id) => {
                 const el = document.getElementById(id);
@@ -2740,6 +2812,16 @@
               let bld = { id };
               [
                 "name",
+                "heritage",
+                "year_built",
+                "total_area",
+                "floors_total",
+                "floors_over",
+                "floors_under",
+                "mansard",
+                "sections",
+                "apartments",
+                "built_in_area",
                 "fnd",
                 "wall",
                 "in_wall",
@@ -2775,6 +2857,7 @@
             });
             document.querySelectorAll(".win-block").forEach((block) => {
               const id = block.dataset.id;
+              const inActEl = document.getElementById("in_act_win_" + id);
               data.windows.push({
                 bld: document.getElementById("bld_sel_win_" + id).value,
                 name: document.getElementById("name_win_" + id).value,
@@ -2787,6 +2870,7 @@
                 d: document.getElementById("d_" + id).value,
                 res_w: document.getElementById("res_w_" + id).value,
                 res_s: document.getElementById("res_s_" + id).value,
+                inAct: inActEl ? inActEl.checked : true,
               });
             });
             document.querySelectorAll(".zone-block").forEach((block) => {
@@ -2800,9 +2884,10 @@
                 document.getElementById("w_" + type + "_" + id) || document.getElementById("h_" + type + "_" + id);
               let wallSide = "internal";
               if (type === "wall") {
-                const sr = block.querySelector('input[name="wall_side_' + id + '"]:checked');
-                if (sr) wallSide = sr.value;
+                const tog = document.getElementById("wall_side_toggle_" + id);
+                if (tog && tog.checked) wallSide = "external";
               }
+              const inActEl = document.getElementById("in_act_" + type + "_" + id);
               data.zones.push({
                 type,
                 bld: document.getElementById("bld_sel_" + type + "_" + id).value,
@@ -2814,6 +2899,7 @@
                 res: document.getElementById("res_" + type + "_" + id).value,
                 cbs,
                 wallSide,
+                inAct: inActEl ? inActEl.checked : true,
               });
             });
             document.querySelectorAll(".eng-block").forEach((block) => {
@@ -2915,6 +3001,16 @@
                   const id = bldCount;
                   [
                     "name",
+                    "heritage",
+                    "year_built",
+                    "total_area",
+                    "floors_total",
+                    "floors_over",
+                    "floors_under",
+                    "mansard",
+                    "sections",
+                    "apartments",
+                    "built_in_area",
                     "fnd",
                     "wall",
                     "in_wall",
@@ -2956,11 +3052,18 @@
                 });
               }
               updateBuildingDropdowns();
+              // відновлюємо збережені значення статичних селектів літер після оновлення дропдаунів
+              ["bld_sel_krokvy", "bld_sel_walls_const", "bld_sel_flr_manual"].forEach((id) => {
+                const el = document.getElementById(id);
+                if (el && data.inputs && data.inputs[id] !== undefined) el.value = data.inputs[id];
+              });
               if (data.windows) {
                 data.windows.forEach((win) => {
                   addWindow();
                   const id = windowCount;
                   if (win.bld) document.getElementById("bld_sel_win_" + id).value = win.bld;
+                  const inActEl = document.getElementById("in_act_win_" + id);
+                  if (inActEl) inActEl.checked = win.inAct !== undefined ? win.inAct : true;
                   document.getElementById("name_win_" + id).value = win.name || "";
                   document.getElementById("desc_win_" + id).value = win.desc || "";
                   document.getElementById("q-win-" + id).value = win.qty;
@@ -2991,14 +3094,14 @@
                   if (resEl) resEl.value = z.res || "";
                   const zoneBlock = document.getElementById("zone-" + z.type + "-" + id);
                   if (zoneBlock) {
+                    const inActEl = document.getElementById("in_act_" + z.type + "_" + id);
+                    if (inActEl) inActEl.checked = z.inAct !== undefined ? z.inAct : true;
                     zoneBlock.querySelectorAll('input[type="checkbox"].cb-inp').forEach((cb) => {
                       if (z.cbs && z.cbs[cb.dataset.id] !== undefined) cb.checked = z.cbs[cb.dataset.id];
                     });
                     if (z.type === "wall" && z.wallSide) {
-                      const sr = zoneBlock.querySelector(
-                        'input[name="wall_side_' + id + '"][value="' + z.wallSide + '"]',
-                      );
-                      if (sr) sr.checked = true;
+                      const tog = document.getElementById("wall_side_toggle_" + id);
+                      if (tog) tog.checked = z.wallSide === "external";
                     }
                   }
                 });
@@ -3171,9 +3274,10 @@
           return text ? text + ";" : "";
         }
 
-        function buildSmartLists(data) {
+        function buildSmartLists(data, forAct) {
           let lists = { fnd: {}, fac: {}, roof: {}, wall: {}, ceil: {}, flr: {}, win_door: {}, eng: {} };
           (data.zones || []).forEach((z) => {
+            if (forAct && z.inAct === false) return;
             let area = parseFloat(z.res) || 0;
             if (area <= 0 && !z.desc) return;
             let target = "";
@@ -3189,7 +3293,11 @@
               if (!lists[target][bld])
                 lists[target][bld] = { letter_text: z.bld ? `Літ. «${z.bld}»:` : "", show_letter: !!z.bld, rooms: [] };
               let dmgText = formatDamageText(z.qty, z.l, z.w, area, z.desc);
-              if (dmgText) lists[target][bld].rooms.push({ room_name: z.name || "Зона", text: dmgText });
+              if (dmgText && z.name && z.name.trim()) {
+				  lists[target][bld].rooms.push({ room_name: z.name.trim(), text: dmgText });
+				} else if (dmgText) {
+				  lists[target][bld].rooms.push({ room_name: null, text: dmgText });
+				}
             }
           });
           (data.windows || []).forEach((w) => {
@@ -3197,6 +3305,9 @@
             let slopeArea = parseFloat(w.res_s) || 0;
             let isDoor = w.type === "door_in_6" || w.type === "door_out_7";
             let isFrame = w.type === "frame";
+            // Пропускаємо блок якщо немає жодних даних
+            let hasData = area > 0 || slopeArea > 0 || (isDoor && (parseFloat(w.w) > 0 || parseFloat(w.h) > 0)) || (w.desc && w.desc.trim() && w.desc.trim() !== "-");
+            if (!hasData) return;
             let winText = isDoor
               ? formatDamageText(w.qty, w.w, w.h, 0, "")
               : formatDamageText(w.qty, w.w, w.h, area, "");
@@ -3209,7 +3320,7 @@
             let bld = w.bld || "no_bld";
             if (!lists.win_door[bld])
               lists.win_door[bld] = { letter_text: w.bld ? `Літ. «${w.bld}»:` : "", show_letter: !!w.bld, rooms: [] };
-            lists.win_door[bld].rooms.push({ room_name: w.name || "Блок", text: textOutput });
+            lists.win_door[bld].rooms.push({ room_name: (w.name && w.name.trim()) ? w.name.trim() : null, text: textOutput });
           });
           (data.eng || []).forEach((e) => {
             let arr = [];
@@ -3243,7 +3354,53 @@
             let bld = e.bld || "no_bld";
             if (!lists.eng[bld])
               lists.eng[bld] = { letter_text: e.bld ? `Літ. «${e.bld}»:` : "", show_letter: !!e.bld, rooms: [] };
-            if (txt && txt !== ";") lists.eng[bld].rooms.push({ room_name: e.name || "Зона", text: txt });
+            if (txt && txt !== ";") lists.eng[bld].rooms.push({ room_name: (e.name && e.name.trim()) ? e.name.trim() : null, text: txt });
+          });
+          // Статичні блоки з вибором літери: крокви, конструктив стін, дошки підлоги
+          const staticManualBlocks = [
+            {
+              bldKey: "bld_sel_krokvy",
+              descKey: "desc_roof_manual",
+              target: "roof",
+              label: "п.2. Заміна кроквяних ніг із брусів",
+              volKey: "2",
+            },
+            {
+              bldKey: "bld_sel_walls_const",
+              descKey: "desc_wall_manual",
+              target: "wall",
+              label: "Конструктивні роботи (стіни)",
+              volKeys: ["20", "21", "22"],
+            },
+            {
+              bldKey: "bld_sel_flr_manual",
+              descKey: "desc_flr_manual",
+              target: "flr",
+              label: "п.43. Заміна окремих дощок у підлогах",
+              volKey: "43",
+            },
+          ];
+          staticManualBlocks.forEach(({ bldKey, descKey, target, label, volKey, volKeys }) => {
+            const bldVal = (data.inputs && data.inputs[bldKey]) || "";
+            const desc = (data.inputs && data.inputs[descKey]) || "";
+            let hasVol = false;
+            if (volKey) hasVol = (volumes[volKey] || 0) > 0;
+            if (volKeys) hasVol = volKeys.some((k) => (volumes[k] || 0) > 0);
+            if (!hasVol && !desc.trim()) return;
+            let txt = "";
+            if (volKey && (volumes[volKey] || 0) > 0) txt += `${label}: ${parseFloat(volumes[volKey]).toFixed(2)} пм`;
+            if (volKeys) {
+              const parts = volKeys
+                .filter((k) => (volumes[k] || 0) > 0)
+                .map((k) => `${DB_LABELS[k] || "п." + k}: ${parseFloat(volumes[k]).toFixed(2)}`);
+              if (parts.length) txt += parts.join(", ");
+            }
+            if (desc.trim()) txt += (txt ? "; " : "") + desc.trim();
+            txt += ";";
+            const bld = bldVal || "no_bld";
+            if (!lists[target][bld])
+              lists[target][bld] = { letter_text: bldVal ? `Літ. «${bldVal}»:` : "", show_letter: !!bldVal, rooms: [] };
+            lists[target][bld].rooms.push({ room_name: null, text: txt });
           });
           let finalLists = {};
           for (let key in lists) {
@@ -3307,16 +3464,16 @@
               dam_reason: document.getElementById("dam_reason").value,
               conclusions: document.getElementById("conclusions").value,
               extra_info: document.getElementById("extra_info").value,
-              heritage_info: document.getElementById("heritage_info").value,
-              year_built: document.getElementById("year_built").value,
-              total_area: document.getElementById("total_area").value,
-              floors_total: document.getElementById("floors_total").value,
-              floors_over: document.getElementById("floors_over").value,
-              floors_under: document.getElementById("floors_under").value,
-              mansard: document.getElementById("mansard").value,
-              sections: document.getElementById("sections").value,
-              apartments: document.getElementById("apartments").value,
-              built_in_area: document.getElementById("built_in_area").value,
+              heritage_info: "",
+              year_built: "",
+              total_area: "",
+              floors_total: "",
+              floors_over: "",
+              floors_under: "",
+              mansard: "",
+              sections: "",
+              apartments: "",
+              built_in_area: "",
               legal_docs: document.getElementById("legal_docs").value,
               photo_pages_text: (() => {
                 let v = parseInt(document.getElementById("photo_pages").value) || 0;
@@ -3422,6 +3579,34 @@
                 if (b.op && b.op !== "-") tech.op.push(pfx + b.op);
               });
             }
+            // Заповнюємо поля характеристик по всіх будівлях з літерами
+            if (saved.buildings && saved.buildings.length > 0) {
+              const bldFields = [
+                ["heritage_info", "heritage"],
+                ["year_built",    "year_built"],
+                ["total_area",    "total_area"],
+                ["floors_total",  "floors_total"],
+                ["floors_over",   "floors_over"],
+                ["floors_under",  "floors_under"],
+                ["mansard",       "mansard"],
+                ["sections",      "sections"],
+                ["apartments",    "apartments"],
+                ["built_in_area", "built_in_area"],
+              ];
+              const isMultiBld = saved.buildings.length > 1;
+              bldFields.forEach(([wordKey, bldProp]) => {
+                const lines = saved.buildings
+                  .filter(b => b[bldProp] && String(b[bldProp]).trim() !== "" && String(b[bldProp]).trim() !== "-")
+                  .map(b => isMultiBld && b.name ? `Літ. ${b.name} - ${b[bldProp]}` : String(b[bldProp]));
+                if (lines.length === 0) {
+                  dataToWord[wordKey] = "-";
+                } else if (lines.length === 1) {
+                  dataToWord[wordKey] = lines[0];
+                } else {
+                  dataToWord[wordKey] = "\n" + lines.join("\n");
+                }
+              });
+            }
             for (let k in tech) {
               dataToWord["tech_" + k] = tech[k].length > 0 ? tech[k].join("\n") : "-";
             }
@@ -3430,21 +3615,21 @@
             dataToWord.eng_g = tech.g.length > 0 ? tech.g.join("; ") : "ні";
             dataToWord.eng_kan = tech.kan.length > 0 ? tech.kan.join("; ") : "ні";
             dataToWord.eng_op = tech.op.length > 0 ? tech.op.join("; ") : "ні";
-            const smartLists = buildSmartLists(saved);
+            const smartLists = buildSmartLists(saved, docType === "act");
             Object.assign(dataToWord, smartLists);
 
             function flattenList(arr) {
-              if (!arr || arr.length === 0) return "";
-              let lines = [];
-              arr.forEach((g) => {
-                if (g.show_letter && g.letter_text) lines.push(g.letter_text);
-                (g.rooms || []).forEach((r) => {
-                  lines.push(r.room_name + ":");
-                  lines.push(" - " + r.text);
-                });
-              });
-              return "\n" + lines.join("\n");
-            }
+			  if (!arr || arr.length === 0) return "";
+			  let lines = [];
+			  arr.forEach((g) => {
+				if (g.show_letter && g.letter_text) lines.push(g.letter_text);
+				(g.rooms || []).forEach((r) => {
+				  if (r.room_name) lines.push(r.room_name + ":");
+				  lines.push(" - " + r.text);
+				});
+			  });
+			  return "\n" + lines.join("\n");
+			}
             dataToWord.text_fnd = flattenList(smartLists.dam_fnd) || "-";
             dataToWord.text_fac = flattenList(smartLists.dam_fac) || "-";
             dataToWord.text_roof_ceil =
