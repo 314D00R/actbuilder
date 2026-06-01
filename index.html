@@ -2415,14 +2415,14 @@
             <div class="dynamic-block-header">
                 <span class="block-num">Власник №${n}</span>
                 <select id="ow_type_${n}" onchange="checkOwnerType(this)" style="width:165px;flex-shrink:0"><option value="власник">Власник (Фіз)</option><option value="співвласник">Співвласник (Фіз)</option><option value="управитель">Управитель (Фіз)</option><option value="юридична особа">Юридична особа</option><option value="custom" class="custom-opt">✏ Вписати своє...</option></select>
-                <input type="text" id="ow_name_${n}" class="block-title-input" placeholder="ПІБ / Назва компанії..." oninput="saveData()">
+                <input type="text" id="ow_name_${n}" class="block-title-input" placeholder="ПІБ / Назва компанії / ФОП" oninput="saveData()">
                 ${n > 1 ? `<button class="block-del-btn" onclick="document.getElementById('owner-block-${n}').remove();saveData()">✖</button>` : ""}
             </div>
             <div class="form-row">
                 <div class="f"><label>Паспорт / ЄДРПОУ</label><input type="text" id="ow_doc_${n}" placeholder="СЕ 123456" oninput="saveData()"></div>
                 <div class="f"><label>Ким виданий</label><input type="text" id="ow_org_${n}" value="Іллічівським МВ ГУМВС України в Одеській обл." oninput="saveData()"></div>
                 <div class="f-sm"><label>Дата видачі</label><input type="text" id="ow_pass_date_${n}" placeholder="12.12.2012" oninput="saveData()"></div>
-                <div class="f-sm"><label>РНОКПП</label><input type="text" id="ow_rnokpp_${n}" placeholder="123456789" oninput="saveData()"></div>
+                <div class="f-sm"><label>РНОКПП / ЄДРПОУ</label><input type="text" id="ow_rnokpp_${n}" placeholder="123456789" oninput="saveData()"></div>
             </div>
         </div>`;
           document.getElementById("owners-container").insertAdjacentHTML("beforeend", html);
@@ -3522,7 +3522,7 @@
                 let isLast = idx === saved.owners.length - 1;
                 let sep = isLast ? "" : "; ";
                 if (ow.type === "юридична особа") {
-                  ownersText += `представника юридичної особи ${ow.name}, ЄДРПОУ: ${ow.doc}${sep}`;
+                  ownersText += `${ow.name}, ЄДРПОУ: ${ow.rnokpp || ow.doc}${sep}`;
                   ownersSigns.push({ title: "Представник" });
                 } else {
                   let rnokpp =
