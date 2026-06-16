@@ -503,7 +503,7 @@
         outline-offset: -2px;
       }
       .sign-draggable[draggable="true"] {
-        cursor: default;
+        cursor: grabbing;
       }
 
       /* DYNAMIC BLOCKS */
@@ -2460,6 +2460,7 @@
           container.addEventListener("dragend", (e) => {
             const block = e.target.closest(".sign-draggable");
             if (!block) return;
+            block.setAttribute("draggable", "false");
             block.style.opacity = "";
             _dndDragging = null;
             container.querySelectorAll(".sign-draggable").forEach(b => b.classList.remove("dnd-over"));
@@ -2496,9 +2497,9 @@
         function addSignature() {
           signCount++;
           const n = signCount;
-          const html = `<div class="dynamic-block sign-draggable" id="sign-block-${n}" style="padding:12px 14px;margin-bottom:7px" draggable="true">
+          const html = `<div class="dynamic-block sign-draggable" id="sign-block-${n}" style="padding:12px 14px;margin-bottom:7px" draggable="false">
             <div class="form-row" style="margin-bottom:0;align-items:center">
-                <div class="sign-drag-handle" title="Перетягни для сортування" style="flex-shrink:0;margin-top:18px;cursor:grab;color:var(--text3);font-size:18px;padding:2px 5px;line-height:1;user-select:none">⠿</div>
+                <div class="sign-drag-handle" title="Перетягни для сортування" style="flex-shrink:0;cursor:grab;color:var(--text3);font-size:18px;padding:2px 5px;line-height:1;user-select:none;align-self:center;display:flex;align-items:center;justify-content:center;height:36px" onmousedown="this.closest('.sign-draggable').setAttribute('draggable','true')" onmouseup="this.closest('.sign-draggable').setAttribute('draggable','false')">⠿</div>
                 <div class="f-sm"><label>Роль</label><select id="sign_role_${n}" onchange="saveStatic()"><option value="Заступник голови комісії">Заступник</option><option value="Секретар комісії">Секретар</option><option value="Член комісії">Член комісії</option></select></div>
                 <div class="f"><label>ПІБ (Називний)</label><input type="text" id="sign_name_${n}" placeholder="Ольга Субботкіна" oninput="saveStatic()"></div>
                 <button class="block-del-btn" style="margin-top:18px" onclick="document.getElementById('sign-block-${n}').remove();saveStatic()">✖</button>
@@ -2600,7 +2601,7 @@
             </div>
             <div class="form-row" style="align-items:flex-end;flex-wrap:wrap">
                 <div class="f-xs"><label>К-сть</label><input type="number" id="q-win-${id}" value="1" oninput="calcWinArea(${id})"></div>
-                <div class="f"><label>Тип</label><select id="w-type-${id}" onchange="toggleWinType(${id});calcAll()"><option value="glass">Вікно: Тільки скло (п.8)</option><option value="frame">Вікно: Рама+Укоси (п.9,10)</option><option value="door_mp">Двері м/п (п.9 без укосів)</option><option value="door_in_6">Двері міжкімнатні (п.6)</option><option value="door_out_7">Двері вхідні метал. (п.7)</option></select></div>
+                <div class="f"><label>Тип</label><select id="w-type-${id}" onchange="toggleWinType(${id});calcAll()"><option value="glass">п.8 — Вікно: тільки скло (м²)</option><option value="frame">п.9+10 — Вікно: рама + укоси (м²)</option><option value="door_mp">п.9 — Двері м/п (без укосів, м²)</option><option value="door_in_6">п.6 — Двері міжкімнатні (шт)</option><option value="door_out_7">п.7 — Двері вхідні метал. (шт)</option></select></div>
                 <div id="slope-type-container-${id}" class="f-sm"><label>Тип укосів</label><select id="s-type-${id}" onchange="calcAll()"><option value="10">Штукатурка</option><option value="30">Гіпсокартон</option></select></div>
             </div>
             <div class="calc-strip">
