@@ -2637,12 +2637,12 @@
                     <span class="act-toggle-toff">🧮 Тільки чеклист</span>
                   </span>
                 </label>
-                ${id > 1 ? `<button class="block-del-btn" onclick="document.getElementById('win-block-${id}').remove();calcAll()">✖</button>` : ""}
+                ${id > 1 ? `<button class="block-del-btn" onclick="document.getElementById('win-block-${id}').remove();renumberWindows();calcAll()">✖</button>` : ""}
             </div>
             <div class="form-row" style="align-items:flex-end;flex-wrap:wrap">
                 <div class="f-xs"><label>К-сть</label><input type="number" id="q-win-${id}" value="1" oninput="calcWinArea(${id})"></div>
                 <div class="f"><label>Тип</label><select id="w-type-${id}" onchange="toggleWinType(${id});calcAll()"><option value="glass">п.8 — Вікно: тільки скло (м²)</option><option value="frame">п.9+10 — Вікно: рама + укоси (м²)</option><option value="door_mp">п.9 — Двері м/п (без укосів, м²)</option><option value="door_in_6">п.6 — Двері міжкімнатні (шт)</option><option value="door_out_7">п.7 — Двері вхідні метал. (шт)</option></select></div>
-                <div id="slope-type-container-${id}" class="f-sm"><label>Тип укосів</label><select id="s-type-${id}" onchange="calcAll()"><option value="10">Штукатурка</option><option value="30">Гіпсокартон</option></select></div>
+                <div id="slope-type-container-${id}" class="f-sm" style="display:none"><label>Тип укосів</label><select id="s-type-${id}" onchange="calcAll()"><option value="10">Штукатурка</option><option value="30">Гіпсокартон</option></select></div>
             </div>
             <div class="calc-strip">
                 <label>Ш:</label><input type="number" id="w_${id}" oninput="calcWinArea(${id})" placeholder="0">
@@ -2650,7 +2650,7 @@
                 <label>В:</label><input type="number" id="h_${id}" oninput="calcWinArea(${id})" placeholder="0">
                 <span class="math">=</span>
                 <label>ПЛОЩА:</label><input type="number" id="res_w_${id}" class="result-input" oninput="calcAll()" placeholder="0.00"> <span style="color:var(--text3);font-size:12px">м²</span>
-                <span id="slope-input-box-${id}" style="display:flex;align-items:center;gap:7px;margin-left:8px;padding-left:8px;border-left:1px solid var(--border2)">
+                <span id="slope-input-box-${id}" style="display:none;align-items:center;gap:7px;margin-left:8px;padding-left:8px;border-left:1px solid var(--border2)">
                     <label>Глиб:</label><input type="number" id="d_${id}" value="0.3" oninput="calcWinArea(${id})" style="width:56px">
                     <span class="math">→</span>
                     <label>Укоси:</label><input type="number" id="res_s_${id}" class="result-input" oninput="calcAll()" placeholder="0.00"> <span style="color:var(--text3);font-size:12px">м²</span>
@@ -2659,7 +2659,14 @@
             <input type="text" id="desc_win_${id}" style="width:100%" placeholder="Опис пошкодження для Акта..." oninput="saveData()">
         </div>`;
           document.getElementById("windows-container").insertAdjacentHTML("beforeend", html);
+          renumberWindows();
           calcAll();
+        }
+        function renumberWindows() {
+          document.querySelectorAll(".win-block").forEach((block, idx) => {
+            const numEl = block.querySelector(".block-num");
+            if (numEl) numEl.textContent = "Блок №" + (idx + 1);
+          });
         }
         function toggleWinType(id) {
           const type = document.getElementById("w-type-" + id).value,
@@ -2914,7 +2921,7 @@
             const data = { inputs: {}, windows: [], zones: [], buildings: [], owners: [], eng: [] };
             document
               .querySelectorAll(
-                "#p-general input,#p-general select,#p-general textarea,#p-techpass input,#p-techpass select,#p-export input,#p-export select",
+                "#p-general input,#p-general select,#p-general textarea,#p-techpass input,#p-techpass select,#p-techpass textarea,#p-export input,#p-export select",
               )
               .forEach((el) => {
                 if (!el.id.startsWith("bld_") && !el.id.startsWith("ow_")) data.inputs[el.id] = el.value;
@@ -3210,6 +3217,7 @@
             "extra_info",
             "photo_pages",
             "obj_notes",
+            "legal_docs",
           ].forEach((id) => {
             const el = document.getElementById(id);
             if (el) el.value = "";
@@ -3457,7 +3465,7 @@
 
           // Рішення
           const oNo = g("order_no");
-          const orderText = oNo ? `№ ${oNo}` : "";
+          const orderText = oNo || "";
 
           const data = {
             address: fullAddr, city: cityInput,
@@ -3795,7 +3803,6 @@
               }
               hiddenEl.value = result[0].id;
             }
-            showToast("Запис оновлено!", "success");
             showToast("Збережено в базу!", "success");
             dbLoad();
           } catch (e) {
