@@ -3297,7 +3297,7 @@
                   </span>
                 </label>
                 <button class="block-copy-btn" title="Копіювати зону" onclick="duplicateWindow(${id})">⧉</button>
-                ${id > 1 ? `<button class="block-del-btn" onclick="document.getElementById('win-block-${id}').remove();renumberWindows();calcAll()">✖</button>` : ""}
+                <button class="block-del-btn" onclick="removeWindow(${id})">✖</button>
             </div>
             <div class="form-row" style="align-items:flex-end;flex-wrap:wrap">
                 <div class="f-xs"><label>К-сть</label><input type="number" id="q-win-${id}" value="1" oninput="calcWinArea(${id})"></div>
@@ -3329,6 +3329,17 @@
             const numEl = block.querySelector(".block-num");
             if (numEl) numEl.textContent = "Блок №" + (idx + 1);
           });
+        }
+        function removeWindow(id) {
+          const container = document.getElementById("windows-container");
+          if (!container) return;
+          if (container.querySelectorAll(".win-block").length <= 1) {
+            alert("Неможливо видалити — це єдина зона цього типу.");
+            return;
+          }
+          document.getElementById("win-block-" + id)?.remove();
+          renumberWindows();
+          calcAll();
         }
         function duplicateWindow(id) {
           const src = document.getElementById("win-block-" + id);
