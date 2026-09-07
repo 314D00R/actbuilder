@@ -720,6 +720,20 @@
         color: var(--red);
         background: rgba(255, 79, 109, 0.1);
       }
+      .block-copy-btn {
+        background: none;
+        border: none;
+        cursor: pointer;
+        color: var(--text3);
+        font-size: 15px;
+        padding: 3px;
+        border-radius: 4px;
+        flex-shrink: 0;
+      }
+      .block-copy-btn:hover {
+        color: var(--accent);
+        background: var(--accent-glow);
+      }
 
       /* CHECKBOXES */
       .cb-grid {
@@ -1104,6 +1118,17 @@
         position: absolute;
         left: 0;
         color: var(--yellow);
+      }
+      .val-list li[data-field-id] {
+        cursor: pointer;
+        text-decoration: underline dotted;
+      }
+      .val-list li[data-field-id]:hover {
+        opacity: 0.8;
+      }
+      .field-error {
+        border: 1.5px solid var(--red) !important;
+        box-shadow: 0 0 0 2px rgba(255, 79, 109, 0.15);
       }
 
       /* EXPORT GRID */
@@ -1492,7 +1517,7 @@
         <div style="font-size: 20px; font-weight: 800; margin-bottom: 6px">🔐 ActBuilder</div>
         <div style="font-size: 12px; color: var(--text3); margin-bottom: 24px">єВідновлення · Вхід</div>
         <label>Email</label>
-        <input type="text" id="auth-email" placeholder="your@email.com" style="margin-bottom: 12px" />
+        <input type="email" id="auth-email" placeholder="your@email.com" style="margin-bottom: 12px" />
         <label>Пароль</label>
         <input type="password" id="auth-pass" placeholder="••••••••" style="margin-bottom: 20px" />
         <div style="display: flex; gap: 10px">
@@ -1913,21 +1938,32 @@
           <div class="card">
             <div class="card-header">
               <div class="card-title">📏 Крокви (Погонні метри)</div>
-              <select id="bld_sel_krokvy" class="bld-select bld-select-inline" onchange="saveData()"></select>
             </div>
-            <div class="work-item-row">
-              <div class="wi-top">
-                <span class="wi-label">п.2. Заміна кроквяних ніг із брусів</span>
-                <input type="number" class="single-inp wi-input" data-id="2" oninput="calcAll()" />
+            <div id="krokvy-container">
+              <div class="konst-zone dynamic-block" data-section="krokvy" data-idx="1" id="krokvy-zone-1">
+                <div class="dynamic-block-header">
+                    <span class="block-num">Крокви №1</span>
+                    <select id="bld_sel_krokvy_1" class="bld-select bld-select-inline konst-input" onchange="saveData()"></select>
+                    <input type="text" id="name_krokvy_1" class="block-title-input konst-input" placeholder="Назва зони пошкодження" oninput="saveData()">
+                    <label class="act-toggle" title="Акт + чеклист / Тільки чеклист" style="flex-shrink:0">
+                      <input type="checkbox" id="in_act_krokvy_1" class="konst-check" checked onchange="saveData()">
+                      <span class="act-toggle-track">
+                        <span class="act-toggle-thumb"></span>
+                        <span class="act-toggle-ton">📋 Акт + чеклист</span>
+                        <span class="act-toggle-toff">🧮 Тільки чеклист</span>
+                      </span>
+                    </label>
+                </div>
+                <div class="work-item-row">
+                  <div class="wi-top">
+                    <span class="wi-label" style="display:flex;align-items:center">п.2. Заміна кроквяних ніг із брусів<span class="item-info-btn" onclick="showItemInfo('2',event)">ℹ</span></span>
+                    <input type="number" class="single-inp wi-input" data-id="2" id="t_krokvy_1" oninput="calcAll()" />
+                  </div>
+                </div>
+                <input type="text" id="desc_krokvy_1" class="konst-input" style="width:100%;margin-top:9px" placeholder="Опис пошкодження для Акта..." oninput="saveData()">
               </div>
             </div>
-            <input
-              type="text"
-              id="desc_roof_manual"
-              style="margin-top: 8px; width: 100%"
-              placeholder="Опис пошкодження крокв для Акта..."
-              oninput="saveData()"
-            />
+            <button class="btn-dashed" onclick="addConstZone('krokvy')">＋ Додати зону (Крокви)</button>
           </div>
           <div class="card accent">
             <div class="card-header"><div class="card-title">🏠 Перекриття</div></div>
@@ -1964,47 +2000,68 @@
           <div class="card">
             <div class="card-header">
               <div class="card-title">🔨 Стіни: Конструктивні роботи</div>
-              <select id="bld_sel_walls_const" class="bld-select bld-select-inline" onchange="saveData()"></select>
             </div>
-            <div class="work-item-row">
-              <div class="wi-top">
-                <span class="wi-label">п.20. Розбирання пошкоджених стін</span
-                ><input type="number" class="single-inp wi-input" data-id="20" id="t_c20" oninput="calcAll()" />
-              </div>
-              <div class="inline-calc">
-                <label>Д:</label><input type="number" id="l_c20" oninput="calcV('c20')" /><label>× В:</label
-                ><input type="number" id="h_c20" oninput="calcV('c20')" /><label>× Товщ:</label
-                ><input type="number" id="d_c20" oninput="calcV('c20')" /> м³
+            <div id="walls-const-container">
+              <div class="konst-zone dynamic-block" data-section="wallsConst" data-idx="1" id="walls-const-zone-1">
+                <div class="dynamic-block-header">
+                    <span class="block-num">Стіни (конструктив) №1</span>
+                    <select id="bld_sel_wallsConst_1" class="bld-select bld-select-inline konst-input" onchange="saveData()"></select>
+                    <input type="text" id="name_wallsConst_1" class="block-title-input konst-input" placeholder="Назва зони пошкодження" oninput="saveData()">
+                    <label class="act-toggle" title="Акт + чеклист / Тільки чеклист" style="flex-shrink:0">
+                      <input type="checkbox" id="in_act_wallsConst_1" class="konst-check" checked onchange="saveData()">
+                      <span class="act-toggle-track">
+                        <span class="act-toggle-thumb"></span>
+                        <span class="act-toggle-ton">📋 Акт + чеклист</span>
+                        <span class="act-toggle-toff">🧮 Тільки чеклист</span>
+                      </span>
+                    </label>
+                </div>
+                <div class="work-item-row">
+                  <div class="wi-top">
+                    <span class="wi-label" style="display:flex;align-items:center">п.20. Розбирання пошкоджених стін<span class="item-info-btn" onclick="showItemInfo('20',event)">ℹ</span></span
+                    ><input type="number" class="single-inp wi-input" data-id="20" id="t_c20_1" oninput="calcAll()" />
+                  </div>
+                  <div class="inline-calc">
+                    <label>Д:</label><input type="number" class="constcalc-inp" id="l_c20_1" oninput="calcV('c20_1')" /><label>× В:</label
+                    ><input type="number" class="constcalc-inp" id="h_c20_1" oninput="calcV('c20_1')" /><label>× Товщ:</label
+                    ><input type="number" class="constcalc-inp" id="d_c20_1" oninput="calcV('c20_1')" /> м³
+                  </div>
+                </div>
+                <div class="work-item-row">
+                  <div class="wi-top">
+                    <span class="wi-label" style="display:flex;align-items:center">п.21. Мурування стін<span class="item-info-btn" onclick="showItemInfo('21',event)">ℹ</span></span
+                    ><input type="number" class="single-inp wi-input" data-id="21" id="t_c21_1" oninput="calcAll()" />
+                  </div>
+                  <div class="inline-calc">
+                    <label>Д:</label><input type="number" class="constcalc-inp" id="l_c21_1" oninput="calcV('c21_1')" /><label>× В:</label
+                    ><input type="number" class="constcalc-inp" id="h_c21_1" oninput="calcV('c21_1')" /><label>× Товщ:</label
+                    ><input type="number" class="constcalc-inp" id="d_c21_1" oninput="calcV('c21_1')" /> м³
+                  </div>
+                </div>
+                <div class="work-item-row">
+                  <div class="wi-top">
+                    <span class="wi-label" style="display:flex;align-items:center">п.22. Мурування внутрішніх перегородок<span class="item-info-btn" onclick="showItemInfo('22',event)">ℹ</span></span
+                    ><input type="number" class="single-inp wi-input" data-id="22" id="t_c22_1" oninput="calcAll()" />
+                  </div>
+                  <div class="inline-calc">
+                    <label>Д:</label><input type="number" class="constcalc-inp" id="l_c22_1" oninput="calcF('c22_1')" /><label>× В:</label
+                    ><input type="number" class="constcalc-inp" id="w_c22_1" oninput="calcF('c22_1')" /> м²
+                  </div>
+                </div>
+                <div class="work-item-row">
+                  <div class="wi-top">
+                    <span class="wi-label" style="display:flex;align-items:center">п.23. Відбивання штукатурки<span class="item-info-btn" onclick="showItemInfo('23',event)">ℹ</span></span
+                    ><input type="number" class="single-inp wi-input" data-id="23" id="t_c23_1" oninput="calcAll()" />
+                  </div>
+                  <div class="inline-calc">
+                    <label>Д:</label><input type="number" class="constcalc-inp" id="l_c23_1" oninput="calcF('c23_1')" /><label>× В:</label
+                    ><input type="number" class="constcalc-inp" id="w_c23_1" oninput="calcF('c23_1')" /> м²
+                  </div>
+                </div>
+                <input type="text" id="desc_wallsConst_1" class="konst-input" style="width:100%;margin-top:9px" placeholder="Опис пошкодження для Акта..." oninput="saveData()">
               </div>
             </div>
-            <div class="work-item-row">
-              <div class="wi-top">
-                <span class="wi-label">п.21. Мурування стін</span
-                ><input type="number" class="single-inp wi-input" data-id="21" id="t_c21" oninput="calcAll()" />
-              </div>
-              <div class="inline-calc">
-                <label>Д:</label><input type="number" id="l_c21" oninput="calcV('c21')" /><label>× В:</label
-                ><input type="number" id="h_c21" oninput="calcV('c21')" /><label>× Товщ:</label
-                ><input type="number" id="d_c21" oninput="calcV('c21')" /> м³
-              </div>
-            </div>
-            <div class="work-item-row">
-              <div class="wi-top">
-                <span class="wi-label">п.22. Мурування внутрішніх перегородок</span
-                ><input type="number" class="single-inp wi-input" data-id="22" id="t_c22" oninput="calcAll()" />
-              </div>
-              <div class="inline-calc">
-                <label>Д:</label><input type="number" id="l_c22" oninput="calcF('c22')" /><label>× В:</label
-                ><input type="number" id="w_c22" oninput="calcF('c22')" /> м²
-              </div>
-            </div>
-            <input
-              type="text"
-              id="desc_wall_manual"
-              style="margin-top: 8px; width: 100%"
-              placeholder="Опис пошкодження конструктиву стін..."
-              oninput="saveData()"
-            />
+            <button class="btn-dashed" onclick="addConstZone('wallsConst')">＋ Додати зону (Стіни: Конструктив)</button>
           </div>
           <div class="card accent">
             <div class="card-header"><div class="card-title">⬜ Стеля</div></div>
@@ -2026,21 +2083,32 @@
           <div class="card">
             <div class="card-header">
               <div class="card-title">📏 Окремі роботи (Погонні метри)</div>
-              <select id="bld_sel_flr_manual" class="bld-select bld-select-inline" onchange="saveData()"></select>
             </div>
-            <div class="work-item-row">
-              <div class="wi-top">
-                <span class="wi-label">п.43. Заміна окремих дощок у підлогах</span
-                ><input type="number" class="single-inp wi-input" data-id="43" oninput="calcAll()" />
+            <div id="flr-manual-container">
+              <div class="konst-zone dynamic-block" data-section="flrManual" data-idx="1" id="flr-manual-zone-1">
+                <div class="dynamic-block-header">
+                    <span class="block-num">Окремі роботи №1</span>
+                    <select id="bld_sel_flrManual_1" class="bld-select bld-select-inline konst-input" onchange="saveData()"></select>
+                    <input type="text" id="name_flrManual_1" class="block-title-input konst-input" placeholder="Назва зони пошкодження" oninput="saveData()">
+                    <label class="act-toggle" title="Акт + чеклист / Тільки чеклист" style="flex-shrink:0">
+                      <input type="checkbox" id="in_act_flrManual_1" class="konst-check" checked onchange="saveData()">
+                      <span class="act-toggle-track">
+                        <span class="act-toggle-thumb"></span>
+                        <span class="act-toggle-ton">📋 Акт + чеклист</span>
+                        <span class="act-toggle-toff">🧮 Тільки чеклист</span>
+                      </span>
+                    </label>
+                </div>
+                <div class="work-item-row">
+                  <div class="wi-top">
+                    <span class="wi-label" style="display:flex;align-items:center">п.43. Заміна окремих дощок у підлогах<span class="item-info-btn" onclick="showItemInfo('43',event)">ℹ</span></span
+                    ><input type="number" class="single-inp wi-input" data-id="43" id="t_flrman_1" oninput="calcAll()" />
+                  </div>
+                </div>
+                <input type="text" id="desc_flrManual_1" class="konst-input" style="width:100%;margin-top:9px" placeholder="Опис пошкодження для Акта..." oninput="saveData()">
               </div>
             </div>
-            <input
-              type="text"
-              id="desc_flr_manual"
-              style="margin-top: 8px; width: 100%"
-              placeholder="Опис пошкодження підлоги для Акта..."
-              oninput="saveData()"
-            />
+            <button class="btn-dashed" onclick="addConstZone('flrManual')">＋ Додати зону (Окремі роботи)</button>
           </div>
         </div>
 
@@ -2090,6 +2158,14 @@
               </div>
             </div>
             <div id="db-list" style="margin-top: 8px"></div>
+          </div>
+          <div class="card">
+            <div class="card-header"><div class="card-title">📦 Резервна копія (файл)</div></div>
+            <div style="display: flex; gap: 8px; flex-wrap: wrap">
+              <button class="btn btn-surface" onclick="exportBackupToFile()">💾 Зберегти резервну копію у файл</button>
+              <button class="btn btn-surface" onclick="document.getElementById('backup-file-input').click()">📂 Завантажити з файлу</button>
+              <input type="file" id="backup-file-input" accept="application/json" style="display: none" onchange="importBackupFromFile(event)" />
+            </div>
           </div>
         </div>
 
@@ -2620,6 +2696,7 @@
           signCount = 0,
           engCount = 0;
         let zoneCounts = { roof: 0, over: 0, wall: 0, ceil: 0, flr: 0, fac: 0, fnd: 0 };
+        let manualZoneCounts = { wallsConst: 1, krokvy: 1, flrManual: 1 };
         let _calcTimer = null,
           _saveTimer = null,
           _loadingStatic = false;
@@ -2750,7 +2827,7 @@
           if (!exists && val !== "") {
             let opt = document.createElement("option");
             opt.value = val;
-            opt.innerHTML = val;
+            opt.textContent = val;
             sel.insertBefore(opt, sel.lastElementChild);
           }
           sel.value = val;
@@ -2770,6 +2847,14 @@
           const d = parseFloat(document.getElementById("d_" + idPrefix).value) || 0;
           document.getElementById("t_" + idPrefix).value = l > 0 && h > 0 && d > 0 ? (l * h * d).toFixed(2) : "";
           calcAll();
+        }
+
+        // Єдине джерело заокруглення для однієї позиції: спершу округлюємо суму по
+        // конкретній позиції до 2 знаків, і лише потім підсумовуємо округлені значення.
+        // Використовується в _calcAllNow (сайдбар), updateTabSubtotals (плашки вкладок)
+        // і updateVolumesTable (таблиця обсягів), щоб суми завжди сходились копійка в копійку.
+        function roundedItemValue(key) {
+          return Math.round((volumes[key] || 0) * (DB[key] || 0) * 100) / 100;
         }
 
         function _calcAllNow() {
@@ -2841,7 +2926,7 @@
             if (val > 0) volumes[inp.dataset.id] = (volumes[inp.dataset.id] || 0) + val;
           });
           for (let key in volumes) {
-            if (volumes[key] > 0 && DB[key]) masterTotal += Math.round(volumes[key] * DB[key] * 100) / 100;
+            if (volumes[key] > 0 && DB[key]) masterTotal += roundedItemValue(key);
           }
           document.getElementById("master_total_sidebar").innerText = formatSum(masterTotal);
           updateTabSubtotals();
@@ -2864,7 +2949,7 @@
             if (!bar) continue;
             let sub = 0;
             keys.forEach((k) => {
-              if (volumes[k] && DB[k]) sub += volumes[k] * DB[k];
+              if (volumes[k] && DB[k]) sub += roundedItemValue(k);
             });
             if (sub > 0) {
               bar.classList.add("show");
@@ -2910,7 +2995,7 @@
           let total = 0;
           entries.forEach(([k, v]) => {
             const price = DB[k],
-              sum = v * price;
+              sum = roundedItemValue(k);
             total += sum;
             html += `<tr><td>${DB_LABELS[k] || "п." + k}</td><td style="text-align:right">${parseFloat(v).toFixed(2)}</td><td style="text-align:right;color:var(--text3)">${formatSum(price)}</td><td>${formatSum(sum)}</td></tr>`;
           });
@@ -2922,55 +3007,63 @@
         // ВАЛІДАЦІЯ ФОРМИ
         // ═══════════════════════════════════════════════════════════════════
         function validateForm() {
+          // Кожен запис — { msg, id } де id (опційно) — id поля, яке буде підсвічене
+          // класом field-error і на яке скролить/фокусить клік по пункту списку.
           const errors = [],
             warnings = [];
+          const addErr = (msg, id) => errors.push({ msg, id });
+          const addWarn = (msg, id) => warnings.push({ msg, id });
+
           const cityVal = document.getElementById("addr_city")?.value;
-          if (!cityVal || cityVal === "custom") errors.push("Місто/Село — не заповнено");
+          if (!cityVal || cityVal === "custom") addErr("Місто/Село — не заповнено", "addr_city");
           const strTypeVal = document.getElementById("addr_str_type")?.value;
-          if (!strTypeVal || strTypeVal === "custom") errors.push("Тип вулиці — не обрано");
-          if (!document.getElementById("addr_street")?.value.trim()) errors.push("Назва вулиці — не заповнена");
-          if (!document.getElementById("addr_house")?.value.trim()) errors.push("Будинок — не заповнений");
-          let ownerHasName = false;
+          if (!strTypeVal || strTypeVal === "custom") addErr("Тип вулиці — не обрано", "addr_str_type");
+          if (!document.getElementById("addr_street")?.value.trim()) addErr("Назва вулиці — не заповнена", "addr_street");
+          if (!document.getElementById("addr_house")?.value.trim()) addErr("Будинок — не заповнений", "addr_house");
+          let ownerHasName = false, firstOwnerId = null;
           document.querySelectorAll('[id^="owner-block"]').forEach((b) => {
             const id = b.id.split("-")[2];
+            if (firstOwnerId === null) firstOwnerId = id;
             const nameEl = document.getElementById("ow_name_" + id);
             if (nameEl && nameEl.value.trim()) ownerHasName = true;
           });
-          if (!ownerHasName) errors.push("ПІБ / Назва компанії власника — не заповнено");
-          if (!document.getElementById("act_date")?.value.trim()) warnings.push("Дата Акта — незаповнена");
-          if (!document.getElementById("cadastral")?.value.trim()) warnings.push("Кадастровий номер — незаповнений");
+          if (!ownerHasName) addErr("ПІБ / Назва компанії власника — не заповнено", firstOwnerId ? "ow_name_" + firstOwnerId : undefined);
+          if (!document.getElementById("act_date")?.value.trim()) addWarn("Дата Акта — незаповнена", "act_date");
+          if (!document.getElementById("cadastral")?.value.trim()) addWarn("Кадастровий номер — незаповнений", "cadastral");
           document.querySelectorAll('[id^="owner-block"]').forEach((b) => {
             const id = b.id.split("-")[2];
             const nameEl = document.getElementById("ow_name_" + id);
             const name = nameEl ? nameEl.value.trim() : "";
             if (!name) return;
             if (!document.getElementById("ow_doc_" + id)?.value.trim())
-              warnings.push("Власник " + name + ": Паспорт/ЄДРПОУ");
+              addWarn("Власник " + name + ": Паспорт/ЄДРПОУ", "ow_doc_" + id);
             if (!document.getElementById("ow_rnokpp_" + id)?.value.trim())
-              warnings.push("Власник " + name + ": РНОКПП");
+              addWarn("Власник " + name + ": РНОКПП", "ow_rnokpp_" + id);
           });
-          if (!document.getElementById("present_manual")?.value.trim()) warnings.push('"У присутності" — незаповнено');
-          if (!document.getElementById("zayava_info")?.value.trim()) warnings.push('"На підставі заяви" — незаповнено');
-          if (!document.getElementById("comm_head_nom")?.value.trim()) warnings.push("Голова комісії — незаповнено");
+          if (!document.getElementById("present_manual")?.value.trim()) addWarn('"У присутності" — незаповнено', "present_manual");
+          if (!document.getElementById("zayava_info")?.value.trim()) addWarn('"На підставі заяви" — незаповнено', "zayava_info");
+          if (!document.getElementById("comm_head_nom")?.value.trim()) addWarn("Голова комісії — незаповнено", "comm_head_nom");
           if (!document.getElementById("comm_head_gen")?.value.trim())
-            warnings.push("Голова комісії (Родовий) — незаповнено");
-          if (!document.getElementById("order_no")?.value.trim()) warnings.push("Номер рішення — незаповнений");
-          let signHasName = false;
+            addWarn("Голова комісії (Родовий) — незаповнено", "comm_head_gen");
+          if (!document.getElementById("order_no")?.value.trim()) addWarn("Номер рішення — незаповнений", "order_no");
+          let signHasName = false, firstSignId = null;
           document.querySelectorAll('[id^="sign-block-"]').forEach((b) => {
             const id = b.id.split("-")[2];
+            if (firstSignId === null) firstSignId = id;
             if (document.getElementById("sign_name_" + id)?.value.trim()) signHasName = true;
           });
-          if (!signHasName) warnings.push("Підписи комісії — жодного підпису не додано");
-          let yearFilled = false, areaFilled = false;
+          if (!signHasName) addWarn("Підписи комісії — жодного підпису не додано", firstSignId ? "sign_name_" + firstSignId : undefined);
+          let yearFilled = false, areaFilled = false, firstBldId = null;
           document.querySelectorAll(".bld-block").forEach((b) => {
             const id = b.dataset.id;
+            if (firstBldId === null) firstBldId = id;
             if (document.getElementById("bld_year_built_" + id)?.value.trim()) yearFilled = true;
             if (document.getElementById("bld_total_area_" + id)?.value.trim()) areaFilled = true;
           });
-          if (!yearFilled) warnings.push("Рік будівництва — незаповнений (у жодній літері)");
-          if (!areaFilled) warnings.push("Загальна площа — незаповнена (у жодній літері)");
+          if (!yearFilled) addWarn("Рік будівництва — незаповнений (у жодній літері)", firstBldId ? "bld_year_built_" + firstBldId : undefined);
+          if (!areaFilled) addWarn("Загальна площа — незаповнена (у жодній літері)", firstBldId ? "bld_total_area_" + firstBldId : undefined);
           if (!document.getElementById("legal_docs")?.value.trim())
-            warnings.push("Правовстановлюючі документи — незаповнені");
+            addWarn("Правовстановлюючі документи — незаповнені", "legal_docs");
           let bldFilled = false;
           document.querySelectorAll(".bld-block").forEach((b) => {
             const id = b.dataset.id;
@@ -2979,9 +3072,20 @@
               if (el && el.value && el.value !== "-") bldFilled = true;
             });
           });
-          if (!bldFilled) warnings.push("Конструктивні елементи (Техпаспорт) — не заповнені");
-          if (!document.getElementById("dam_date")?.value.trim()) warnings.push("Дата пошкодження — незаповнена");
-          if (!document.getElementById("conclusions")?.value.trim()) warnings.push("Висновки комісії — незаповнені");
+          if (!bldFilled) addWarn("Конструктивні елементи (Техпаспорт) — не заповнені");
+          if (!document.getElementById("dam_date")?.value.trim()) addWarn("Дата пошкодження — незаповнена", "dam_date");
+          if (!document.getElementById("conclusions")?.value.trim()) addWarn("Висновки комісії — незаповнені", "conclusions");
+
+          document.querySelectorAll(".field-error").forEach((el) => el.classList.remove("field-error"));
+          [...errors, ...warnings].forEach((item) => {
+            if (!item.id) return;
+            document.getElementById(item.id)?.classList.add("field-error");
+          });
+
+          const renderItem = (item) => {
+            const attr = item.id ? ` data-field-id="${escapeAttr(item.id)}" onclick="focusValidationField('${escapeAttr(item.id)}')"` : "";
+            return `<li${attr}>${escapeHtml(item.msg)}</li>`;
+          };
 
           const msgEl = document.getElementById("validation-msg");
           const errHead = document.getElementById("val-err-head"),
@@ -2991,13 +3095,26 @@
           if (errors.length > 0 || warnings.length > 0) {
             msgEl.classList.add("show");
             errHead.style.display = errors.length > 0 ? "block" : "none";
-            errList.innerHTML = errors.map((e) => "<li>" + e + "</li>").join("");
+            errList.innerHTML = errors.map(renderItem).join("");
             warnHead.style.display = warnings.length > 0 ? "block" : "none";
-            warnList.innerHTML = warnings.map((w) => "<li>" + w + "</li>").join("");
+            warnList.innerHTML = warnings.map(renderItem).join("");
           } else {
             msgEl.classList.remove("show");
           }
           return errors.length === 0;
+        }
+        function focusValidationField(fieldId) {
+          const el = document.getElementById(fieldId);
+          if (!el) return;
+          const pageEl = el.closest(".page");
+          if (pageEl && !pageEl.classList.contains("active")) {
+            const navBtn = document.querySelector('.nav-item[onclick*="\'' + pageEl.id + '\'"]');
+            openPage(pageEl.id, navBtn);
+          }
+          requestAnimationFrame(() => {
+            el.scrollIntoView({ behavior: "smooth", block: "center" });
+            el.focus();
+          });
         }
 
         // ═══════════════════════════════════════════════════════════════════
@@ -3150,7 +3267,7 @@
           let options = '<option value="">(Без літери / Квартира)</option>';
           document.querySelectorAll(".bld-name").forEach((input) => {
             let val = input.value.trim();
-            if (val) options += `<option value="${val}">${val}</option>`;
+            if (val) options += `<option value="${escapeHtml(val)}">${escapeHtml(val)}</option>`;
           });
           return options;
         }
@@ -3187,11 +3304,13 @@
                 <div id="slope-type-container-${id}" class="f-sm" style="display:none"><label>Тип укосів</label><div style="display:flex;align-items:center;gap:6px"><select id="s-type-${id}" onchange="calcAll()" style="flex:1"><option value="10">Штукатурка</option><option value="30">Гіпсокартон</option></select><span class="item-info-btn" onclick="showItemInfo(document.getElementById('s-type-${id}').value,event)">ℹ</span></div></div>
             </div>
             <div class="calc-strip">
-                <label>Ш:</label><input type="number" id="w_${id}" oninput="calcWinArea(${id})" placeholder="0">
-                <span class="math">×</span>
-                <label>В:</label><input type="number" id="h_${id}" oninput="calcWinArea(${id})" placeholder="0">
-                <span class="math">=</span>
-                <label>ПЛОЩА:</label><input type="number" id="res_w_${id}" class="result-input" oninput="calcAll()" placeholder="0.00"> <span style="color:var(--text3);font-size:12px">м²</span>
+                <span id="area-input-box-${id}" style="display:flex;align-items:center;gap:7px">
+                    <label>Ш:</label><input type="number" id="w_${id}" oninput="calcWinArea(${id})" placeholder="0">
+                    <span class="math">×</span>
+                    <label>В:</label><input type="number" id="h_${id}" oninput="calcWinArea(${id})" placeholder="0">
+                    <span class="math">=</span>
+                    <label>ПЛОЩА:</label><input type="number" id="res_w_${id}" class="result-input" oninput="calcAll()" placeholder="0.00"> <span style="color:var(--text3);font-size:12px">м²</span>
+                </span>
                 <span id="slope-input-box-${id}" style="display:none;align-items:center;gap:7px;margin-left:8px;padding-left:8px;border-left:1px solid var(--border2)">
                     <label>Глиб:</label><input type="number" id="d_${id}" value="0.3" oninput="calcWinArea(${id})" style="width:56px">
                     <span class="math">→</span>
@@ -3210,6 +3329,74 @@
             if (numEl) numEl.textContent = "Блок №" + (idx + 1);
           });
         }
+        function renumberZoneBlocks(type) {
+          document.querySelectorAll('.zone-block[data-type="' + type + '"]').forEach((block, idx) => {
+            const numEl = block.querySelector(".block-num");
+            if (numEl) numEl.textContent = numEl.textContent.replace(/№\d+$/, "№" + (idx + 1));
+          });
+        }
+        function renumberKonstZones(section) {
+          document.querySelectorAll('.konst-zone[data-section="' + section + '"]').forEach((block, idx) => {
+            const numEl = block.querySelector(".block-num");
+            if (numEl) numEl.textContent = numEl.textContent.replace(/№\d+$/, "№" + (idx + 1));
+          });
+        }
+        function removeZone(type, id) {
+          const container = document.getElementById(type + "-container");
+          if (!container) return;
+          if (container.querySelectorAll(".zone-block").length <= 1) {
+            alert("Неможливо видалити — це єдина зона цього типу.");
+            return;
+          }
+          document.getElementById("zone-" + type + "-" + id)?.remove();
+          renumberZoneBlocks(type);
+          calcAll();
+        }
+        function copyZoneFieldValues(src, dst) {
+          const srcFields = src.querySelectorAll("input, select, textarea");
+          const dstFields = dst.querySelectorAll("input, select, textarea");
+          srcFields.forEach((el, i) => {
+            const target = dstFields[i];
+            if (!target) return;
+            if (el.type === "checkbox" || el.type === "radio") target.checked = el.checked;
+            else target.value = el.value;
+          });
+        }
+        function duplicateZone(type, id) {
+          const src = document.getElementById("zone-" + type + "-" + id);
+          if (!src) return;
+          addZone(type);
+          const newId = zoneCounts[type];
+          const dst = document.getElementById("zone-" + type + "-" + newId);
+          if (!dst) return;
+          copyZoneFieldValues(src, dst);
+          saveData();
+          calcAll();
+        }
+        const KONST_CONTAINER_IDS = { wallsConst: "walls-const-container", krokvy: "krokvy-container", flrManual: "flr-manual-container" };
+        function removeKonstZone(section, delId) {
+          const container = document.getElementById(KONST_CONTAINER_IDS[section]);
+          if (!container) return;
+          if (container.querySelectorAll(".konst-zone").length <= 1) {
+            alert("Неможливо видалити — це єдина зона цього типу.");
+            return;
+          }
+          document.getElementById(delId)?.remove();
+          renumberKonstZones(section);
+          calcAll();
+        }
+        function duplicateKonstZone(section, srcId) {
+          const src = document.getElementById(srcId);
+          if (!src) return;
+          addConstZone(section);
+          const newIdx = manualZoneCounts[section];
+          const containerId = KONST_CONTAINER_IDS[section];
+          const dst = document.querySelector('#' + containerId + ' .konst-zone[data-idx="' + newIdx + '"]');
+          if (!dst) return;
+          copyZoneFieldValues(src, dst);
+          saveData();
+          calcAll();
+        }
         function getWinTypeItemKey(id) {
           const type = document.getElementById("w-type-" + id)?.value;
           const map = { glass: "8", frame: "9", door_mp: "9", door_in_6: "6", door_out_7: "7" };
@@ -3217,11 +3404,21 @@
         }
         function toggleWinType(id) {
           const type = document.getElementById("w-type-" + id).value,
-            isFrame = type === "frame";
+            isFrame = type === "frame",
+            isCountedDoor = type === "door_in_6" || type === "door_out_7";
           const sc = document.getElementById("slope-type-container-" + id),
             sb = document.getElementById("slope-input-box-" + id);
           if (sc) sc.style.display = isFrame ? "" : "none";
           if (sb) sb.style.display = isFrame ? "flex" : "none";
+          const areaBox = document.getElementById("area-input-box-" + id);
+          if (areaBox) areaBox.style.display = isCountedDoor ? "none" : "flex";
+          if (isCountedDoor) {
+            // п.6/п.7 рахуються тільки в штуках — прибираємо залишкові розміри, щоб не потрапили в Акт
+            ["w_", "h_", "d_", "res_w_", "res_s_"].forEach((prefix) => {
+              const el = document.getElementById(prefix + id);
+              if (el && prefix !== "d_") el.value = "";
+            });
+          }
         }
         function calcWinArea(id) {
           const qty = parseFloat(document.getElementById("q-win-" + id).value) || 1,
@@ -3248,7 +3445,6 @@
             title = "Дах";
             cbsHTML =
               mkCb(type, id, 1, "п.1. Локально шифер/черепиця") +
-              mkCb(type, id, 2, "п.2. Заміна кроквяних ніг") +
               mkCb(type, id, 3, "п.3. Заміна без крокв") +
               mkCb(type, id, 4, "п.4. З кроквами до 25%") +
               mkCb(type, id, 5, "п.5. З кроквами більше 25%");
@@ -3265,9 +3461,6 @@
             dim2Id = "h";
             cbsHTML =
               mkCb(type, id, 20, "п.20. Розбирання стін/перегородок") +
-              mkCb(type, id, 21, "п.21. Мурування стін") +
-              mkCb(type, id, 22, "п.22. Мурування перегородок") +
-              mkCb(type, id, 23, "п.23. Відбивання штукатурки") +
               mkCb(type, id, 24, "п.24. Штукатурення") +
               mkCb(type, id, 26, "п.26. Фарбування") +
               mkCb(type, id, 27, "п.27. Шпалери") +
@@ -3290,7 +3483,6 @@
               mkCb(type, id, 38, "п.38. Плитка") +
               mkCb(type, id, 39, "п.39. Ламінат") +
               mkCb(type, id, 42, "п.42. Лінолеум") +
-              mkCb(type, id, 43, "п.43. Заміна окремих дощок") +
               mkCb(type, id, 44, "п.44. Відновлення дощатих");
           } else if (type === "fac") {
             title = "Фасад";
@@ -3324,7 +3516,8 @@
                     <span class="act-toggle-toff">🧮 Тільки чеклист</span>
                   </span>
                 </label>
-                ${id > 1 ? `<button class="block-del-btn" onclick="document.getElementById('zone-${type}-${id}').remove();calcAll()">✖</button>` : ""}
+                <button class="block-copy-btn" title="Копіювати зону" onclick="duplicateZone('${type}',${id})">⧉</button>
+                <button class="block-del-btn" onclick="removeZone('${type}',${id})">✖</button>
             </div>
             <div class="calc-strip">
                 <label>К-сть:</label><input type="number" id="q_${type}_${id}" value="1" oninput="calcZoneArea('${type}',${id})" style="width:52px">
@@ -3358,6 +3551,102 @@
               document.getElementById("w_" + type + "_" + id) || document.getElementById("h_" + type + "_" + id),
             w = secondEl ? parseFloat(secondEl.value) || 0 : 0;
           if (l > 0 && w > 0) document.getElementById("res_" + type + "_" + id).value = (l * w * qty).toFixed(2);
+          calcAll();
+        }
+
+        function constZoneHeader(section, idx, title, delId) {
+          return `<div class="dynamic-block-header">
+                  <span class="block-num">${title} №${idx}</span>
+                  <select id="bld_sel_${section}_${idx}" class="bld-select bld-select-inline konst-input" onchange="saveData()">${getBuildingOptions()}</select>
+                  <input type="text" id="name_${section}_${idx}" class="block-title-input konst-input" placeholder="Назва зони пошкодження" oninput="saveData()">
+                  <label class="act-toggle" title="Акт + чеклист / Тільки чеклист" style="flex-shrink:0">
+                    <input type="checkbox" id="in_act_${section}_${idx}" class="konst-check" onchange="saveData()">
+                    <span class="act-toggle-track">
+                      <span class="act-toggle-thumb"></span>
+                      <span class="act-toggle-ton">📋 Акт + чеклист</span>
+                      <span class="act-toggle-toff">🧮 Тільки чеклист</span>
+                    </span>
+                  </label>
+                  <button class="block-copy-btn" title="Копіювати зону" onclick="duplicateKonstZone('${section}','${delId}')">⧉</button>
+                  <button class="block-del-btn" onclick="removeKonstZone('${section}','${delId}')">✖</button>
+              </div>`;
+        }
+        function addConstZone(section) {
+          manualZoneCounts[section]++;
+          const idx = manualZoneCounts[section];
+          if (section === "wallsConst") {
+            const html = `<div class="konst-zone dynamic-block" data-section="wallsConst" data-idx="${idx}" id="walls-const-zone-${idx}">
+              ${constZoneHeader("wallsConst", idx, "Стіни (конструктив)", "walls-const-zone-" + idx)}
+              <div class="work-item-row">
+                <div class="wi-top">
+                  <span class="wi-label" style="display:flex;align-items:center">п.20. Розбирання пошкоджених стін<span class="item-info-btn" onclick="showItemInfo('20',event)">ℹ</span></span
+                  ><input type="number" class="single-inp wi-input" data-id="20" id="t_c20_${idx}" oninput="calcAll()" />
+                </div>
+                <div class="inline-calc">
+                  <label>Д:</label><input type="number" class="constcalc-inp" id="l_c20_${idx}" oninput="calcV('c20_${idx}')" /><label>× В:</label
+                  ><input type="number" class="constcalc-inp" id="h_c20_${idx}" oninput="calcV('c20_${idx}')" /><label>× Товщ:</label
+                  ><input type="number" class="constcalc-inp" id="d_c20_${idx}" oninput="calcV('c20_${idx}')" /> м³
+                </div>
+              </div>
+              <div class="work-item-row">
+                <div class="wi-top">
+                  <span class="wi-label" style="display:flex;align-items:center">п.21. Мурування стін<span class="item-info-btn" onclick="showItemInfo('21',event)">ℹ</span></span
+                  ><input type="number" class="single-inp wi-input" data-id="21" id="t_c21_${idx}" oninput="calcAll()" />
+                </div>
+                <div class="inline-calc">
+                  <label>Д:</label><input type="number" class="constcalc-inp" id="l_c21_${idx}" oninput="calcV('c21_${idx}')" /><label>× В:</label
+                  ><input type="number" class="constcalc-inp" id="h_c21_${idx}" oninput="calcV('c21_${idx}')" /><label>× Товщ:</label
+                  ><input type="number" class="constcalc-inp" id="d_c21_${idx}" oninput="calcV('c21_${idx}')" /> м³
+                </div>
+              </div>
+              <div class="work-item-row">
+                <div class="wi-top">
+                  <span class="wi-label" style="display:flex;align-items:center">п.22. Мурування внутрішніх перегородок<span class="item-info-btn" onclick="showItemInfo('22',event)">ℹ</span></span
+                  ><input type="number" class="single-inp wi-input" data-id="22" id="t_c22_${idx}" oninput="calcAll()" />
+                </div>
+                <div class="inline-calc">
+                  <label>Д:</label><input type="number" class="constcalc-inp" id="l_c22_${idx}" oninput="calcF('c22_${idx}')" /><label>× В:</label
+                  ><input type="number" class="constcalc-inp" id="w_c22_${idx}" oninput="calcF('c22_${idx}')" /> м²
+                </div>
+              </div>
+              <div class="work-item-row">
+                <div class="wi-top">
+                  <span class="wi-label" style="display:flex;align-items:center">п.23. Відбивання штукатурки<span class="item-info-btn" onclick="showItemInfo('23',event)">ℹ</span></span
+                  ><input type="number" class="single-inp wi-input" data-id="23" id="t_c23_${idx}" oninput="calcAll()" />
+                </div>
+                <div class="inline-calc">
+                  <label>Д:</label><input type="number" class="constcalc-inp" id="l_c23_${idx}" oninput="calcF('c23_${idx}')" /><label>× В:</label
+                  ><input type="number" class="constcalc-inp" id="w_c23_${idx}" oninput="calcF('c23_${idx}')" /> м²
+                </div>
+              </div>
+              <input type="text" id="desc_wallsConst_${idx}" class="konst-input" style="width:100%;margin-top:9px" placeholder="Опис пошкодження для Акта..." oninput="saveData()">
+            </div>`;
+            document.getElementById("walls-const-container").insertAdjacentHTML("beforeend", html);
+          } else if (section === "krokvy") {
+            const html = `<div class="konst-zone dynamic-block" data-section="krokvy" data-idx="${idx}" id="krokvy-zone-${idx}">
+              ${constZoneHeader("krokvy", idx, "Крокви", "krokvy-zone-" + idx)}
+              <div class="work-item-row">
+                <div class="wi-top">
+                  <span class="wi-label" style="display:flex;align-items:center">п.2. Заміна кроквяних ніг із брусів<span class="item-info-btn" onclick="showItemInfo('2',event)">ℹ</span></span
+                  ><input type="number" class="single-inp wi-input" data-id="2" id="t_krokvy_${idx}" oninput="calcAll()" />
+                </div>
+              </div>
+              <input type="text" id="desc_krokvy_${idx}" class="konst-input" style="width:100%;margin-top:9px" placeholder="Опис пошкодження для Акта..." oninput="saveData()">
+            </div>`;
+            document.getElementById("krokvy-container").insertAdjacentHTML("beforeend", html);
+          } else if (section === "flrManual") {
+            const html = `<div class="konst-zone dynamic-block" data-section="flrManual" data-idx="${idx}" id="flr-manual-zone-${idx}">
+              ${constZoneHeader("flrManual", idx, "Окремі роботи", "flr-manual-zone-" + idx)}
+              <div class="work-item-row">
+                <div class="wi-top">
+                  <span class="wi-label" style="display:flex;align-items:center">п.43. Заміна окремих дощок у підлогах<span class="item-info-btn" onclick="showItemInfo('43',event)">ℹ</span></span
+                  ><input type="number" class="single-inp wi-input" data-id="43" id="t_flrman_${idx}" oninput="calcAll()" />
+                </div>
+              </div>
+              <input type="text" id="desc_flrManual_${idx}" class="konst-input" style="width:100%;margin-top:9px" placeholder="Опис пошкодження для Акта..." oninput="saveData()">
+            </div>`;
+            document.getElementById("flr-manual-container").insertAdjacentHTML("beforeend", html);
+          }
           calcAll();
         }
 
@@ -3400,6 +3689,10 @@
           calcAll();
         }
 
+        // NOTE: ключі localStorage ("evidnovlennya_save_v14", "evidnovlennya_static_v14") жорстко
+        // зашиті без версійної міграції. Якщо в майбутньому зміниться структура даних (нові/перейменовані
+        // поля тощо), потрібно передбачити міграцію старих збережень під новий формат або хоча б
+        // попередження користувачу про несумісність версії — інакше стара збережена робота може зламатись.
         function saveStatic() {
           const sData = { signs: [], inputs: {} };
           [
@@ -3470,7 +3763,7 @@
 
         function _saveDataNow() {
           try {
-            const data = { inputs: {}, windows: [], zones: [], buildings: [], owners: [], eng: [] };
+            const data = { inputs: {}, windows: [], zones: [], buildings: [], owners: [], eng: [], constZones: [] };
             document
               .querySelectorAll(
                 "#p-general input,#p-general select,#p-general textarea,#p-techpass input,#p-techpass select,#p-techpass textarea,#p-export input,#p-export select",
@@ -3481,20 +3774,46 @@
             document
               .querySelectorAll("#p-roof .single-inp,#p-walls .single-inp,#p-floors .single-inp")
               .forEach((el) => (data.inputs[el.id || "si_" + el.dataset.id] = el.value));
-            ["desc_roof_manual", "desc_wall_manual", "desc_flr_manual"].forEach((id) => {
-              const el = document.getElementById(id);
-              if (el) data.inputs[id] = el.value;
+            document.querySelectorAll("#p-walls .constcalc-inp").forEach((el) => {
+              if (el.id) data.inputs[el.id] = el.value;
             });
-            ["bld_sel_krokvy", "bld_sel_walls_const", "bld_sel_flr_manual"].forEach((id) => {
-              const el = document.getElementById(id);
-              if (el) data.inputs[id] = el.value;
+            document
+              .querySelectorAll("#p-roof .konst-input,#p-walls .konst-input,#p-floors .konst-input")
+              .forEach((el) => {
+                if (el.id) data.inputs[el.id] = el.value;
+              });
+            document
+              .querySelectorAll("#p-roof .konst-check,#p-walls .konst-check,#p-floors .konst-check")
+              .forEach((el) => {
+                if (el.id) data.inputs[el.id] = el.checked;
+              });
+            data.inputs["_mz_wallsConst"] = manualZoneCounts.wallsConst;
+            data.inputs["_mz_krokvy"] = manualZoneCounts.krokvy;
+            data.inputs["_mz_flrManual"] = manualZoneCounts.flrManual;
+            document.querySelectorAll(".konst-zone").forEach((block) => {
+              const section = block.dataset.section,
+                idx = block.dataset.idx;
+              const inActEl = document.getElementById("in_act_" + section + "_" + idx);
+              let items = {};
+              if (section === "krokvy") {
+                items["2"] = document.getElementById("t_krokvy_" + idx)?.value || "";
+              } else if (section === "wallsConst") {
+                ["20", "21", "22", "23"].forEach((code) => {
+                  items[code] = document.getElementById("t_c" + code + "_" + idx)?.value || "";
+                });
+              } else if (section === "flrManual") {
+                items["43"] = document.getElementById("t_flrman_" + idx)?.value || "";
+              }
+              data.constZones.push({
+                section,
+                idx,
+                bld: document.getElementById("bld_sel_" + section + "_" + idx)?.value || "",
+                name: document.getElementById("name_" + section + "_" + idx)?.value || "",
+                desc: document.getElementById("desc_" + section + "_" + idx)?.value || "",
+                inAct: inActEl ? inActEl.checked : true,
+                items,
+              });
             });
-            ["l_c20", "h_c20", "d_c20", "t_c20", "l_c21", "h_c21", "d_c21", "t_c21", "l_c22", "w_c22", "t_c22"].forEach(
-              (id) => {
-                const el = document.getElementById(id);
-                if (el) data.inputs[id] = el.value;
-              },
-            );
             document.querySelectorAll(".bld-block").forEach((block) => {
               const id = block.dataset.id;
               let bld = { id };
@@ -3600,6 +3919,12 @@
           ["roof", "over", "wall", "ceil", "flr", "fac", "fnd"].forEach((t) => {
             if (document.querySelectorAll('.zone-block[data-type="' + t + '"]').length === 0) addZone(t);
           });
+          ["wallsConst", "krokvy", "flrManual"].forEach((t) => {
+            if (document.querySelectorAll('.konst-zone[data-section="' + t + '"]').length === 0) {
+              manualZoneCounts[t] = 0;
+              addConstZone(t);
+            }
+          });
           if (
             document.querySelectorAll('[id^="sign-block-"]').length === 0 &&
             !localStorage.getItem("evidnovlennya_static_v14")
@@ -3621,10 +3946,20 @@
             (t) => (document.getElementById(t + "-container").innerHTML = ""),
           );
           zoneCounts = { roof: 0, over: 0, wall: 0, ceil: 0, flr: 0, fac: 0, fnd: 0 };
+          document.querySelectorAll(".konst-zone").forEach((el) => el.remove());
+          manualZoneCounts = { wallsConst: 1, krokvy: 1, flrManual: 1 };
           try {
             const saved = localStorage.getItem("evidnovlennya_save_v14");
             if (saved) {
               const data = JSON.parse(saved);
+              if (data.inputs) {
+                const mzWallsConst = parseInt(data.inputs["_mz_wallsConst"]) || 1;
+                const mzKrokvy = parseInt(data.inputs["_mz_krokvy"]) || 1;
+                const mzFlrManual = parseInt(data.inputs["_mz_flrManual"]) || 1;
+                for (let i = 1; i < mzWallsConst; i++) addConstZone("wallsConst");
+                for (let i = 1; i < mzKrokvy; i++) addConstZone("krokvy");
+                for (let i = 1; i < mzFlrManual; i++) addConstZone("flrManual");
+              }
               if (data.inputs) {
                 for (let id in data.inputs) {
                   const el = document.getElementById(id);
@@ -3664,11 +3999,23 @@
                 });
               }
               updateBuildingDropdowns();
-              // відновлюємо збережені значення статичних селектів літер після оновлення дропдаунів
-              ["bld_sel_krokvy", "bld_sel_walls_const", "bld_sel_flr_manual"].forEach((id) => {
-                const el = document.getElementById(id);
-                if (el && data.inputs && data.inputs[id] !== undefined) el.value = data.inputs[id];
-              });
+              // відновлюємо збережені значення селектів літер зон Крокви/Конструктив/Окремі роботи після оновлення дропдаунів
+              document
+                .querySelectorAll("#p-roof .konst-input,#p-walls .konst-input,#p-floors .konst-input")
+                .forEach((el) => {
+                  if (data.inputs && data.inputs[el.id] !== undefined) {
+                    if (el.tagName.toLowerCase() === "select") setSelectValue(el, data.inputs[el.id]);
+                    else el.value = data.inputs[el.id];
+                  }
+                });
+              // чекбокси "Акт+чеклист / Тільки чеклист" не є select/text, відновлюємо окремо
+              document
+                .querySelectorAll("#p-roof .konst-check,#p-walls .konst-check,#p-floors .konst-check")
+                .forEach((el) => {
+                  if (data.inputs && data.inputs[el.id] !== undefined)
+                    el.checked = data.inputs[el.id] === true || data.inputs[el.id] === "true";
+                  else el.checked = true;
+                });
               if (data.windows) {
                 data.windows.forEach((win) => {
                   addWindow();
@@ -3806,16 +4153,13 @@
             if (nameEl) nameEl.value = "";
           });
           document.querySelectorAll(".single-inp").forEach((el) => (el.value = ""));
-          ["desc_roof_manual", "desc_wall_manual", "desc_flr_manual"].forEach((id) => {
-            const el = document.getElementById(id);
-            if (el) el.value = "";
-          });
-          ["l_c20", "h_c20", "d_c20", "t_c20", "l_c21", "h_c21", "d_c21", "t_c21", "l_c22", "w_c22", "t_c22"].forEach(
-            (id) => {
-              const el = document.getElementById(id);
-              if (el) el.value = "";
-            },
-          );
+          document
+            .querySelectorAll("#p-roof .konst-input,#p-walls .konst-input,#p-floors .konst-input")
+            .forEach((el) => (el.value = ""));
+          document
+            .querySelectorAll("#p-roof .konst-check,#p-walls .konst-check,#p-floors .konst-check")
+            .forEach((el) => (el.checked = true));
+          document.querySelectorAll("#p-walls .constcalc-inp").forEach((el) => (el.value = ""));
           document.querySelectorAll(".eng-block").forEach((block) => {
             const id = block.dataset.id;
             [
@@ -3899,11 +4243,15 @@
             let slopeArea = parseFloat(w.res_s) || 0;
             let isDoor = w.type === "door_in_6" || w.type === "door_out_7";
             let isFrame = w.type === "frame";
+            // Двері (п.6/п.7) рахуються лише в штуках — розміри для них не вводяться
+            let qty = parseFloat(w.qty) || 0;
             // Пропускаємо блок якщо немає жодних даних
-            let hasData = area > 0 || slopeArea > 0 || (isDoor && (parseFloat(w.w) > 0 || parseFloat(w.h) > 0)) || (w.desc && w.desc.trim() && w.desc.trim() !== "-");
+            let hasData = area > 0 || slopeArea > 0 || (isDoor && qty > 0) || (w.desc && w.desc.trim() && w.desc.trim() !== "-");
             if (!hasData) return;
             let winText = isDoor
-              ? formatDamageText(w.qty, w.w, w.h, 0, "")
+              ? qty > 0
+                ? `У кількості ${qty} шт.;`
+                : ""
               : formatDamageText(w.qty, w.w, w.h, area, "");
             let slopeText = isFrame && slopeArea > 0 ? `загальна площа укосів — ${slopeArea.toFixed(2)} кв. м;` : "";
             let cleanDesc = (w.desc || "").trim();
@@ -3950,51 +4298,40 @@
               lists.eng[bld] = { letter_text: e.bld ? `Літ. «${e.bld}»:` : "", show_letter: !!e.bld, rooms: [] };
             if (txt && txt !== ";") lists.eng[bld].rooms.push({ room_name: (e.name && e.name.trim()) ? e.name.trim() : null, text: txt });
           });
-          // Статичні блоки з вибором літери: крокви, конструктив стін, дошки підлоги
-          const staticManualBlocks = [
-            {
-              bldKey: "bld_sel_krokvy",
-              descKey: "desc_roof_manual",
-              target: "roof",
-              label: "п.2. Заміна кроквяних ніг із брусів",
-              volKey: "2",
-            },
-            {
-              bldKey: "bld_sel_walls_const",
-              descKey: "desc_wall_manual",
-              target: "wall",
-              label: "Конструктивні роботи (стіни)",
-              volKeys: ["20", "21", "22"],
-            },
-            {
-              bldKey: "bld_sel_flr_manual",
-              descKey: "desc_flr_manual",
-              target: "flr",
-              label: "п.43. Заміна окремих дощок у підлогах",
-              volKey: "43",
-            },
-          ];
-          staticManualBlocks.forEach(({ bldKey, descKey, target, label, volKey, volKeys }) => {
-            const bldVal = (data.inputs && data.inputs[bldKey]) || "";
-            const desc = (data.inputs && data.inputs[descKey]) || "";
+          // Динамічні зони: Крокви / Конструктив стін / Окремі роботи — кожна зона formує свій запис в Акті
+          const constZoneMeta = {
+            krokvy: { target: "roof", label: "п.2. Заміна кроквяних ніг із брусів", volKey: "2" },
+            wallsConst: { target: "wall", label: "Конструктивні роботи (стіни)", volKeys: ["20", "21", "22", "23"] },
+            flrManual: { target: "flr", label: "п.43. Заміна окремих дощок у підлогах", volKey: "43" },
+          };
+          (data.constZones || []).forEach((z) => {
+            if (forAct && z.inAct === false) return;
+            const meta = constZoneMeta[z.section];
+            if (!meta) return;
+            const items = z.items || {};
             let hasVol = false;
-            if (volKey) hasVol = (volumes[volKey] || 0) > 0;
-            if (volKeys) hasVol = volKeys.some((k) => (volumes[k] || 0) > 0);
-            if (!hasVol && !desc.trim()) return;
+            if (meta.volKey) hasVol = (parseFloat(items[meta.volKey]) || 0) > 0;
+            if (meta.volKeys) hasVol = meta.volKeys.some((k) => (parseFloat(items[k]) || 0) > 0);
+            const desc = (z.desc || "").trim();
+            if (!hasVol && !desc) return;
             let txt = "";
-            if (volKey && (volumes[volKey] || 0) > 0) txt += `${label}: ${parseFloat(volumes[volKey]).toFixed(2)} пм`;
-            if (volKeys) {
-              const parts = volKeys
-                .filter((k) => (volumes[k] || 0) > 0)
-                .map((k) => `${DB_LABELS[k] || "п." + k}: ${parseFloat(volumes[k]).toFixed(2)}`);
+            if (meta.volKey) {
+              const v = parseFloat(items[meta.volKey]) || 0;
+              if (v > 0) txt += `${meta.label}: ${v.toFixed(2)} пм`;
+            }
+            if (meta.volKeys) {
+              const parts = meta.volKeys
+                .filter((k) => (parseFloat(items[k]) || 0) > 0)
+                .map((k) => `${DB_LABELS[k] || "п." + k}: ${parseFloat(items[k]).toFixed(2)}`);
               if (parts.length) txt += parts.join(", ");
             }
-            if (desc.trim()) txt += (txt ? "; " : "") + desc.trim();
+            if (desc) txt += (txt ? "; " : "") + desc;
             txt += ";";
-            const bld = bldVal || "no_bld";
-            if (!lists[target][bld])
-              lists[target][bld] = { letter_text: bldVal ? `Літ. «${bldVal}»:` : "", show_letter: !!bldVal, rooms: [] };
-            lists[target][bld].rooms.push({ room_name: null, text: txt });
+            const bld = z.bld || "no_bld";
+            if (!lists[meta.target][bld])
+              lists[meta.target][bld] = { letter_text: z.bld ? `Літ. «${z.bld}»:` : "", show_letter: !!z.bld, rooms: [] };
+            const name = (z.name || "").trim();
+            lists[meta.target][bld].rooms.push({ room_name: name ? name : null, text: txt });
           });
           let finalLists = {};
           for (let key in lists) {
@@ -4304,6 +4641,52 @@
           document.getElementById("app-root").style.display = "flex";
         }
 
+        function exportBackupToFile() {
+          saveData();
+          saveStatic();
+          const backup = {
+            main: localStorage.getItem("evidnovlennya_save_v14") || "{}",
+            static: localStorage.getItem("evidnovlennya_static_v14") || "{}",
+            exported_at: new Date().toISOString(),
+          };
+          const blob = new Blob([JSON.stringify(backup, null, 2)], { type: "application/json" });
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement("a");
+          a.href = url;
+          const dateStr = new Date().toISOString().slice(0, 10);
+          a.download = `evidnovlennya-backup-${dateStr}.json`;
+          document.body.appendChild(a);
+          a.click();
+          a.remove();
+          URL.revokeObjectURL(url);
+        }
+
+        function importBackupFromFile(event) {
+          const file = event.target.files && event.target.files[0];
+          if (!file) return;
+          const reader = new FileReader();
+          reader.onload = () => {
+            try {
+              const backup = JSON.parse(reader.result);
+              if (!backup || (!backup.main && !backup.static)) {
+                alert("Файл не схожий на резервну копію застосунку.");
+                return;
+              }
+              if (!confirm("Завантажити дані з файлу?\n\nПоточні незбережені дані будуть замінені.")) return;
+              if (backup.main) localStorage.setItem("evidnovlennya_save_v14", backup.main);
+              if (backup.static) localStorage.setItem("evidnovlennya_static_v14", backup.static);
+              loadData();
+              loadStatic();
+              showToast("Резервну копію завантажено", "success");
+            } catch (e) {
+              alert("Не вдалося прочитати файл: некоректний JSON.");
+            } finally {
+              event.target.value = "";
+            }
+          };
+          reader.readAsText(file);
+        }
+
         async function dbSave() {
           _calcAllNow();
           const allData = localStorage.getItem("evidnovlennya_save_v14");
@@ -4313,8 +4696,11 @@
           const hseVal = document.getElementById("addr_house")?.value || "";
           const address = `${cityVal}, ${strVal}, ${hseVal}`.trim();
           let ownerVal = "";
-          const saved = JSON.parse(allData || "{}");
-          if (saved.owners && saved.owners.length > 0) ownerVal = saved.owners[0].name || "";
+          const firstOwnerBlock = document.querySelector('[id^="owner-block"]');
+          if (firstOwnerBlock) {
+            const ownerId = firstOwnerBlock.id.split("-")[2];
+            ownerVal = document.getElementById("ow_name_" + ownerId)?.value.trim() || "";
+          }
 
           // перевіряємо чи вже є такий запис
           const existingId = document.getElementById("db-current-id")?.value;
@@ -4401,8 +4787,8 @@
               const isActive = currentId === r.id;
               return `<div style="display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:${isActive ? "var(--accent-glow)" : "var(--surface2)"};border:1px solid ${isActive ? "var(--accent)" : "var(--border)"};border-radius:var(--radius-sm);margin-bottom:6px;gap:10px">
                 <div style="flex:1;min-width:0">
-                    <div style="font-size:13px;font-weight:600;color:var(--text)">${r.address || "—"}</div>
-                    <div style="font-size:11px;color:var(--text3);margin-top:2px">${r.owner || "—"} · ${date}</div>
+                    <div style="font-size:13px;font-weight:600;color:var(--text)">${escapeHtml(r.address || "—")}</div>
+                    <div style="font-size:11px;color:var(--text3);margin-top:2px">${escapeHtml(r.owner || "—")} · ${date}</div>
                 </div>
                 <div style="display:flex;gap:6px;flex-shrink:0">
                     <button class="btn btn-surface" style="padding:5px 10px;font-size:11px" onclick="dbLoadRecord('${r.id}')">📂 Завантажити</button>
