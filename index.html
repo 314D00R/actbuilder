@@ -3296,6 +3296,7 @@
                     <span class="act-toggle-toff">🧮 Тільки чеклист</span>
                   </span>
                 </label>
+                <button class="block-copy-btn" title="Копіювати зону" onclick="duplicateWindow(${id})">⧉</button>
                 ${id > 1 ? `<button class="block-del-btn" onclick="document.getElementById('win-block-${id}').remove();renumberWindows();calcAll()">✖</button>` : ""}
             </div>
             <div class="form-row" style="align-items:flex-end;flex-wrap:wrap">
@@ -3328,6 +3329,19 @@
             const numEl = block.querySelector(".block-num");
             if (numEl) numEl.textContent = "Блок №" + (idx + 1);
           });
+        }
+        function duplicateWindow(id) {
+          const src = document.getElementById("win-block-" + id);
+          if (!src) return;
+          addWindow();
+          const newId = windowCount;
+          const dst = document.getElementById("win-block-" + newId);
+          if (!dst) return;
+          copyZoneFieldValues(src, dst);
+          toggleWinType(newId);
+          calcWinArea(newId);
+          saveData();
+          calcAll();
         }
         function renumberZoneBlocks(type) {
           document.querySelectorAll('.zone-block[data-type="' + type + '"]').forEach((block, idx) => {
