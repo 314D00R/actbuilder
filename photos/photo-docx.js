@@ -1,6 +1,7 @@
 /**
  * ActPhotosDocx — Pure OpenXML generator that appends borderless A4 photo tables
  * directly into the rendered Act PizZip (.docx) after the commission/owner signatures block.
+ * Supports >100% zoom/crop-fill baked 1:1 to exact cell geometry.
  * Requires zero manual template edits and zero third-party docxtemplater image modules.
  */
 (function (global) {
@@ -36,83 +37,83 @@
 
   function buildPageBreakParagraph() {
     return (
-      '<w:p>' +
+      "<w:p>" +
       '<w:pPr><w:spacing w:before="0" w:after="0" w:line="20" w:lineRule="exact"/></w:pPr>' +
       '<w:r><w:br w:type="page"/></w:r>' +
-      '</w:p>'
+      "</w:p>"
     );
   }
 
   function buildTrailingParagraph() {
     return (
-      '<w:p>' +
-      '<w:pPr>' +
+      "<w:p>" +
+      "<w:pPr>" +
       '<w:spacing w:before="0" w:after="0" w:line="20" w:lineRule="exact"/>' +
       '<w:rPr><w:sz w:val="2"/><w:szCs w:val="2"/></w:rPr>' +
-      '</w:pPr>' +
-      '</w:p>'
+      "</w:pPr>" +
+      "</w:p>"
     );
   }
 
   function buildDrawingXml(rId, docPrId, fileName, cx, cy) {
     const safeName = String(fileName || "photo.jpg").replace(/[&<>"']/g, "");
     return (
-      '<w:drawing>' +
+      "<w:drawing>" +
       '<wp:inline distT="0" distB="0" distL="0" distR="0">' +
       `<wp:extent cx="${cx}" cy="${cy}"/>` +
       '<wp:effectExtent l="0" t="0" r="0" b="0"/>' +
       `<wp:docPr id="${docPrId}" name="Photo ${docPrId}"/>` +
-      '<wp:cNvGraphicFramePr>' +
+      "<wp:cNvGraphicFramePr>" +
       '<a:graphicFrameLocks xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" noChangeAspect="1"/>' +
-      '</wp:cNvGraphicFramePr>' +
+      "</wp:cNvGraphicFramePr>" +
       '<a:graphic xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main">' +
       '<a:graphicData uri="http://schemas.openxmlformats.org/drawingml/2006/picture">' +
       '<pic:pic xmlns:pic="http://schemas.openxmlformats.org/drawingml/2006/picture">' +
-      '<pic:nvPicPr>' +
+      "<pic:nvPicPr>" +
       `<pic:cNvPr id="${docPrId}" name="${safeName}"/>` +
       '<pic:cNvPicPr><a:picLocks noChangeAspect="1" noChangeArrowheads="1"/></pic:cNvPicPr>' +
-      '</pic:nvPicPr>' +
-      '<pic:blipFill>' +
+      "</pic:nvPicPr>" +
+      "<pic:blipFill>" +
       `<a:blip r:embed="${rId}"/>` +
-      '<a:stretch><a:fillRect/></a:stretch>' +
-      '</pic:blipFill>' +
+      "<a:stretch><a:fillRect/></a:stretch>" +
+      "</pic:blipFill>" +
       '<pic:spPr bwMode="auto">' +
-      '<a:xfrm>' +
+      "<a:xfrm>" +
       '<a:off x="0" y="0"/>' +
       `<a:ext cx="${cx}" cy="${cy}"/>` +
-      '</a:xfrm>' +
+      "</a:xfrm>" +
       '<a:prstGeom prst="rect"><a:avLst/></a:prstGeom>' +
-      '</pic:spPr>' +
-      '</pic:pic>' +
-      '</a:graphicData>' +
-      '</a:graphic>' +
-      '</wp:inline>' +
-      '</w:drawing>'
+      "</pic:spPr>" +
+      "</pic:pic>" +
+      "</a:graphicData>" +
+      "</a:graphic>" +
+      "</wp:inline>" +
+      "</w:drawing>"
     );
   }
 
   function buildBordersXml(showBorders) {
     if (showBorders) {
       return (
-        '<w:tblBorders>' +
+        "<w:tblBorders>" +
         '<w:top w:val="single" w:sz="4" w:space="0" w:color="CBD5E1"/>' +
         '<w:left w:val="single" w:sz="4" w:space="0" w:color="CBD5E1"/>' +
         '<w:bottom w:val="single" w:sz="4" w:space="0" w:color="CBD5E1"/>' +
         '<w:right w:val="single" w:sz="4" w:space="0" w:color="CBD5E1"/>' +
         '<w:insideH w:val="single" w:sz="4" w:space="0" w:color="CBD5E1"/>' +
         '<w:insideV w:val="single" w:sz="4" w:space="0" w:color="CBD5E1"/>' +
-        '</w:tblBorders>'
+        "</w:tblBorders>"
       );
     }
     return (
-      '<w:tblBorders>' +
+      "<w:tblBorders>" +
       '<w:top w:val="none" w:sz="0" w:space="0" w:color="auto"/>' +
       '<w:left w:val="none" w:sz="0" w:space="0" w:color="auto"/>' +
       '<w:bottom w:val="none" w:sz="0" w:space="0" w:color="auto"/>' +
       '<w:right w:val="none" w:sz="0" w:space="0" w:color="auto"/>' +
       '<w:insideH w:val="none" w:sz="0" w:space="0" w:color="auto"/>' +
       '<w:insideV w:val="none" w:sz="0" w:space="0" w:color="auto"/>' +
-      '</w:tblBorders>'
+      "</w:tblBorders>"
     );
   }
 
@@ -152,12 +153,25 @@
     return maxId;
   }
 
-  function buildPageTableXml(page, imageMetaMap, options, nextDocPrIdFn) {
+  function getPageMetrics(page) {
     const cols = page.cols;
     const rows = page.rows;
     const colWidths = splitTotal(PAGE_W_DXA, cols);
     const rowHeights = splitTotal(PAGE_H_DXA, rows);
     const cellPadDxa = cols * rows >= 16 ? 35 : 55;
+    return { cols, rows, colWidths, rowHeights, cellPadDxa };
+  }
+
+  function getPlacementInnerBox(metrics, placement) {
+    const spanW = sumRange(metrics.colWidths, placement.col, placement.colSpan);
+    const spanH = sumRange(metrics.rowHeights, placement.row, placement.rowSpan);
+    const innerW = Math.max(200, spanW - metrics.cellPadDxa * 2 - 20);
+    const innerH = Math.max(200, spanH - metrics.cellPadDxa * 2 - 20);
+    return { spanW, spanH, innerW, innerH };
+  }
+
+  function buildPageTableXml(page, metrics, imageMetaMap, options, nextDocPrIdFn) {
+    const { cols, rows, colWidths, rowHeights, cellPadDxa } = metrics;
     const showBorders = !!(options && options.showBorders);
 
     // Check which rows participate in any vertical merge (rowSpan > 1)
@@ -207,8 +221,7 @@
 
         if (cell.type === "origin") {
           const p = cell.placement;
-          const spanW = sumRange(colWidths, c, p.colSpan);
-          const spanH = sumRange(rowHeights, r, p.rowSpan);
+          const { spanW, innerW, innerH } = getPlacementInnerBox(metrics, p);
           const meta = imageMetaMap.get(p.photo.id);
 
           let tcPr = `<w:tcW w:w="${spanW}" w:type="dxa"/>`;
@@ -218,16 +231,25 @@
 
           let pContent = "";
           if (meta) {
-            const innerW = Math.max(200, spanW - cellPadDxa * 2 - 20);
-            const innerH = Math.max(200, spanH - cellPadDxa * 2 - 20);
-            const scaleFactor = Math.max(0.4, Math.min(1, (p.scalePct || 100) / 100));
-            const maxW_emu = Math.round(innerW * EMU_PER_DXA * scaleFactor);
-            const maxH_emu = Math.round(innerH * EMU_PER_DXA * scaleFactor);
-            const imgW = Math.max(1, meta.width || 1);
-            const imgH = Math.max(1, meta.height || 1);
-            const fitRatio = Math.min(maxW_emu / imgW, maxH_emu / imgH);
-            const cx = Math.max(EMU_PER_DXA * 10, Math.round(imgW * fitRatio));
-            const cy = Math.max(EMU_PER_DXA * 10, Math.round(imgH * fitRatio));
+            const maxCellW_emu = Math.round(innerW * EMU_PER_DXA);
+            const maxCellH_emu = Math.round(innerH * EMU_PER_DXA);
+            let cx, cy;
+
+            if (meta.targetDxaW && meta.targetDxaH) {
+              // Zoom/crop (>100%): image was center-cropped to exact visible proportions
+              cx = Math.min(maxCellW_emu, Math.max(EMU_PER_DXA * 10, Math.round(meta.targetDxaW * EMU_PER_DXA)));
+              cy = Math.min(maxCellH_emu, Math.max(EMU_PER_DXA * 10, Math.round(meta.targetDxaH * EMU_PER_DXA)));
+            } else {
+              const scaleFactor = Math.max(0.4, Math.min(1, (p.scalePct || 100) / 100));
+              const maxW_emu = Math.round(maxCellW_emu * scaleFactor);
+              const maxH_emu = Math.round(maxCellH_emu * scaleFactor);
+              const imgW = Math.max(1, meta.width || 1);
+              const imgH = Math.max(1, meta.height || 1);
+              const fitRatio = Math.min(maxW_emu / imgW, maxH_emu / imgH);
+              cx = Math.max(EMU_PER_DXA * 10, Math.round(imgW * fitRatio));
+              cy = Math.max(EMU_PER_DXA * 10, Math.round(imgH * fitRatio));
+            }
+
             const docPrId = nextDocPrIdFn();
             pContent = `<w:r>${buildDrawingXml(meta.rId, docPrId, meta.mediaName, cx, cy)}</w:r>`;
           }
@@ -268,10 +290,6 @@
 
   /**
    * Append all photo pages to a rendered Act PizZip archive.
-   * @param {PizZip} zip - Rendered docx zip from docxtemplater
-   * @param {Array} photos - Ordered photo records from IndexedDB
-   * @param {Object} settings - Layout settings
-   * @param {Function} onProgress - Optional progress callback ({ completed, total })
    */
   async function appendPhotosToActZip(zip, photos, settings, onProgress) {
     if (!zip || !Array.isArray(photos) || photos.length === 0) return { appendedPages: 0, appendedPhotos: 0 };
@@ -296,28 +314,43 @@
     let nextDocPrId = findMaxDocPrId(docXml) + 1;
 
     const imageMetaMap = new Map();
+    const pageMetricsList = layout.pages.map((page) => getPageMetrics(page));
     let newRelsXml = "";
     const total = photos.length;
+    let processedCount = 0;
 
-    // Bake & write each photo into word/media/
-    for (let i = 0; i < total; i++) {
-      const photo = photos[i];
-      const baked = await global.ActPhotosEditor.bakePhotoForExport(photo);
-      const mediaName = `photo_${i + 1}.jpg`;
-      const mediaPath = `word/media/${mediaName}`;
-      const rId = `rId${nextRelNum++}`;
+    // Bake & write each photo using its exact cell inner box (enables accurate >100% zoom crop)
+    for (let pi = 0; pi < layout.pages.length; pi++) {
+      const page = layout.pages[pi];
+      const metrics = pageMetricsList[pi];
+      for (const pl of page.placements) {
+        const photo = pl.photo;
+        const { innerW, innerH } = getPlacementInnerBox(metrics, pl);
+        const baked = await global.ActPhotosEditor.bakePhotoForExport(photo, {
+          cellInnerW: innerW,
+          cellInnerH: innerH,
+          scalePct: pl.scalePct,
+        });
 
-      zip.file(mediaPath, baked.bytes, { binary: true });
-      newRelsXml += `<Relationship Id="${rId}" Type="${REL_IMAGE_TYPE}" Target="media/${mediaName}"/>`;
-      imageMetaMap.set(photo.id, {
-        rId,
-        mediaName,
-        width: baked.width,
-        height: baked.height,
-      });
+        processedCount++;
+        const mediaName = `photo_${processedCount}.jpg`;
+        const mediaPath = `word/media/${mediaName}`;
+        const rId = `rId${nextRelNum++}`;
 
-      if (typeof onProgress === "function") {
-        onProgress({ completed: i + 1, total });
+        zip.file(mediaPath, baked.bytes, { binary: true });
+        newRelsXml += `<Relationship Id="${rId}" Type="${REL_IMAGE_TYPE}" Target="media/${mediaName}"/>`;
+        imageMetaMap.set(photo.id, {
+          rId,
+          mediaName,
+          width: baked.width,
+          height: baked.height,
+          targetDxaW: baked.targetDxaW || null,
+          targetDxaH: baked.targetDxaH || null,
+        });
+
+        if (typeof onProgress === "function") {
+          onProgress({ completed: processedCount, total });
+        }
       }
     }
 
@@ -328,9 +361,9 @@
     // Build OOXML for all A4 photo sheets (page break after signatures, and between sheets)
     const tableOptions = { showBorders: !!(settings && settings.showBorders) };
     let appendixXml = "";
-    layout.pages.forEach((page) => {
+    layout.pages.forEach((page, pi) => {
       appendixXml += buildPageBreakParagraph();
-      appendixXml += buildPageTableXml(page, imageMetaMap, tableOptions, () => nextDocPrId++);
+      appendixXml += buildPageTableXml(page, pageMetricsList[pi], imageMetaMap, tableOptions, () => nextDocPrId++);
     });
     // Mandatory minimal paragraph after the final table before <w:sectPr>
     appendixXml += buildTrailingParagraph();
@@ -351,7 +384,7 @@
 
     return {
       appendedPages: layout.pages.length,
-      appendedPhotos: total,
+      appendedPhotos: processedCount,
     };
   }
 

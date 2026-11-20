@@ -264,6 +264,11 @@
       }
 
       markPlaced(currentPage.occ, fit.row, fit.col, rSpan, cSpan);
+      const defaultScale = clampInt(cfg.globalScalePct, 40, 250, 100);
+      const effectiveScale =
+        typeof photo.scalePct === "number" && Number.isFinite(photo.scalePct)
+          ? clampInt(photo.scalePct, 40, 250, defaultScale)
+          : defaultScale;
       currentPage.placements.push({
         photo,
         globalIndex: i,
@@ -272,7 +277,7 @@
         rowSpan: rSpan,
         colSpan: cSpan,
         isAutoAsymmetric,
-        scalePct: clampInt(photo.scalePct, 40, 100, 100),
+        scalePct: effectiveScale,
       });
     }
 

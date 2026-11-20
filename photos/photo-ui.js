@@ -1,8 +1,8 @@
 /**
  * ActPhotos — Main UI controller for the «Фотофіксація» page (#p-photos).
- * Coordinates Dropzone uploads, background Worker compression, IndexedDB persistence,
- * flexible A4 sheet rendering, Drag & Drop reordering, per-cell sizing, mini-editor,
- * and automatic synchronization with ActBuilder's sidebar badge & #photo_pages field.
+ * Coordinates Dropzone uploads, background Worker compression with auto-portrait rotation,
+ * IndexedDB persistence, flexible A4 sheet rendering, >100% scale zoom/crop,
+ * Drag & Drop reordering, per-cell sizing, mini-editor, and #photo_pages sync.
  */
 (function (global) {
   "use strict";
@@ -67,6 +67,34 @@
     }
   }
 
+  function getPhotoEffectiveDims(photo) {
+    const rot = photo && photo.edits ? photo.edits.rotate || 0 : 0;
+    return global.ActPhotosEditor.getEffectiveDimensions(photo.width || 1, photo.height || 1, rot);
+  }
+
+  function countLandscapePhotos() {
+    let n = 0;
+    for (const p of _photos) {
+      const d = getPhotoEffectiveDims(p);
+      if (d.width > d.height) n++;
+    }
+    return n;
+  }
+
+  function computeFillScalePct(photo) {
+    const dims = getPhotoEffectiveDims(photo);
+    const cols = _lastRenderedGrid.cols || 2;
+    const rows = _lastRenderedGrid.rows || 2;
+    const cSpan = Math.min(cols, Math.max(1, photo.colSpan || 1));
+    const rSpan = Math.min(rows, Math.max(1, photo.rowSpan || 1));
+    const cellW = (global.ActPhotosDocx.PAGE_W_DXA / cols) * cSpan;
+    const cellH = (global.ActPhotosDocx.PAGE_H_DXA / rows) * rSpan;
+    const cellRatio = cellW / Math.max(1, cellH);
+    const imgRatio = dims.width / Math.max(1, dims.height);
+    const coverMult = Math.max(cellRatio / imgRatio, imgRatio / cellRatio);
+    return Math.min(250, Math.max(100, Math.ceil((coverMult * 100) / 5) * 5));
+  }
+
   function ensureShellDom() {
     const root = document.getElementById("p-photos");
     if (!root || root.dataset.photosMounted === "1") return;
@@ -101,6 +129,16 @@
           <input type="file" id="photo-file-input" accept="image/*" multiple style="display:none" />
         </div>
 
+        <div class="photo-orient-row">
+          <label class="photo-toggle-inline" title="Автоматично повертати горизонтальні (альбомні) фото на 90° у книжковий формат А4 при завантаженні">
+            <input type="checkbox" id="photo-auto-portrait-cb" checked />
+            <span>↻ Автоповорот горизонтальних у книжковий формат (А4)</span>
+          </label>
+          <button type="button" class="btn btn-surface" id="photo-rotate-landscape-btn" style="padding:5px 11px;font-size:12px;display:none">
+            ↻ Повернути горизонтальні (0)
+          </button>
+        </div>
+
         <div class="photo-progress-wrap" id="photo-progress-wrap">
           <div class="photo-progress-head">
             <span id="photo-progress-label">Стиснення фото...</span>
@@ -116,7 +154,7 @@
         <div class="card-header">
           <div class="card-title">📐 Компоновка сітки на аркуш А4</div>
           <button type="button" class="btn btn-surface" id="photo-reset-spans-btn" style="padding:5px 11px;font-size:12px;display:none">
-            ↺ Скинути розміри комірок
+            ↺ Скинути розміри та масштаб
           </button>
         </div>
 
@@ -138,8 +176,20 @@
           <button type="button" class="photo-preset-btn" data-asym="equal-rows">Рівні комірки</button>
         </div>
 
+        <div class="photo-extra-controls">
+          <div class="photo-global-scale">
+            <span class="photo-global-scale-lbl">🔍 Загальний масштаб фото:</span>
+            <input type="range" id="photo-global-scale" min="40" max="250" step="5" value="100" />
+            <span class="photo-global-scale-val" id="photo-global-scale-val">100%</span>
+            <button type="button" class="photo-scale-chip" data-gscale="100">100%</button>
+            <button type="button" class="photo-scale-chip" data-gscale="125">125%</button>
+            <button type="button" class="photo-scale-chip" data-gscale="150">150%</button>
+            <button type="button" class="photo-scale-chip" data-gscale="200">200%</button>
+          </div>
+        </div>
+
         <div class="photo-layout-hint">
-          Перетягуйте фото картки для зміни порядку (у межах аркуша і між аркушами). Натисніть <b>⤢</b> на фото для зміни розміру комірки або <b>🎨</b> для міні-редактора. Без текстових підписів · У Word додається без рамок з нового аркуша після підписів комісії.
+          Масштаб &gt;100% збільшує та обрізає фото по центру комірки (без виходу за межі аркуша — у Word зберігається точно так само). Натисніть <b>⤢</b> для налаштування окремої комірки або <b>🎨</b> для міні-редактора.
         </div>
       </div>
 
@@ -155,7 +205,7 @@
     const html = `
       <div class="photo-size-popover" id="photo-size-popover">
         <div class="photo-size-pop-head">
-          <span>⤢ Розмір комірки фото</span>
+          <span>⤢ Розмір та масштаб комірки</span>
           <button type="button" class="photo-size-pop-close" id="psp-close">✕</button>
         </div>
         <div class="photo-size-quick">
@@ -184,10 +234,18 @@
         </div>
         <div class="photo-scale-block">
           <div class="pe-control-head">
-            <label for="psp-scale">Масштаб у комірці</label>
+            <label for="psp-scale">Масштаб (40%–250%)</label>
             <span class="pe-val" id="psp-scale-val">100%</span>
           </div>
-          <input type="range" id="psp-scale" min="40" max="100" step="5" value="100" />
+          <input type="range" id="psp-scale" min="40" max="250" step="5" value="100" />
+          <div class="photo-scale-chips">
+            <button type="button" class="photo-scale-chip" data-pscale="80">80%</button>
+            <button type="button" class="photo-scale-chip" data-pscale="100">100%</button>
+            <button type="button" class="photo-scale-chip" data-pscale="125">125%</button>
+            <button type="button" class="photo-scale-chip" data-pscale="150">150%</button>
+            <button type="button" class="photo-scale-chip" data-pscale="200">200%</button>
+            <button type="button" class="photo-scale-chip" id="psp-fill-btn" title="Автоматично заповнити всю комірку без білих полів">Заповнити</button>
+          </div>
         </div>
         <button type="button" class="btn btn-surface" id="psp-reset" style="width:100%;justify-content:center;padding:6px 10px;font-size:12px">
           ↺ Авто-розмір комірки
@@ -221,8 +279,21 @@
       applyCellSizePatch({ scalePct: val });
     });
 
+    pop.querySelectorAll("[data-pscale]").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const val = parseInt(btn.dataset.pscale, 10) || 100;
+        applyCellSizePatch({ scalePct: val });
+      });
+    });
+
+    document.getElementById("psp-fill-btn").addEventListener("click", () => {
+      const photo = _photos.find((p) => p.id === _sizePopPhotoId);
+      if (!photo) return;
+      applyCellSizePatch({ scalePct: computeFillScalePct(photo) });
+    });
+
     document.getElementById("psp-reset").addEventListener("click", () => {
-      applyCellSizePatch({ colSpan: null, rowSpan: null, scalePct: 100 });
+      applyCellSizePatch({ colSpan: null, rowSpan: null, scalePct: null });
     });
 
     document.addEventListener("click", (e) => {
@@ -289,6 +360,14 @@
       clearAll(false);
     });
 
+    document.getElementById("photo-auto-portrait-cb").addEventListener("change", async (e) => {
+      await updateSettings({ autoPortrait: Boolean(e.target.checked) });
+    });
+
+    document.getElementById("photo-rotate-landscape-btn").addEventListener("click", () => {
+      rotateAllLandscapeToPortrait();
+    });
+
     document.getElementById("photo-auto-btn").addEventListener("click", async () => {
       await updateSettings({ mode: "auto" });
     });
@@ -322,21 +401,40 @@
       await updateSettings({ asymmetricMode: btn.dataset.asym });
     });
 
+    // Global scale slider & quick chips
+    const gScaleEl = document.getElementById("photo-global-scale");
+    gScaleEl.addEventListener("input", async () => {
+      const val = Math.max(40, Math.min(250, parseInt(gScaleEl.value, 10) || 100));
+      await applyGlobalScale(val);
+    });
+    document.querySelectorAll("[data-gscale]").forEach((btn) => {
+      btn.addEventListener("click", async () => {
+        const val = parseInt(btn.dataset.gscale, 10) || 100;
+        await applyGlobalScale(val);
+      });
+    });
+
     document.getElementById("photo-reset-spans-btn").addEventListener("click", async () => {
       let changed = false;
       for (const p of _photos) {
-        if (p.colSpan || p.rowSpan || (p.scalePct && p.scalePct !== 100)) {
+        if (p.colSpan || p.rowSpan || p.scalePct != null) {
           p.colSpan = null;
           p.rowSpan = null;
-          p.scalePct = 100;
+          p.scalePct = null;
           changed = true;
         }
       }
       if (changed) {
         await global.ActPhotosDB.putPhotosBatch(_photos);
+      }
+      if (_settings && _settings.globalScalePct !== 100) {
+        _settings = await global.ActPhotosDB.saveSettings({ globalScalePct: 100 });
+        changed = true;
+      }
+      if (changed) {
         render();
         syncPhotoPagesField(true);
-        notifyToast("Розміри комірок скинуто до стандартних", "info");
+        notifyToast("Розміри та масштаб скинуто до 100%", "info");
       }
     });
 
@@ -422,6 +520,51 @@
     });
   }
 
+  async function applyGlobalScale(val) {
+    const prevGlobal = (_settings && _settings.globalScalePct) || 100;
+    // Migrate legacy photos stored with default scalePct=100 so they inherit global scale smoothly
+    const toUpdate = [];
+    for (const p of _photos) {
+      if (p.scalePct === prevGlobal) {
+        p.scalePct = null;
+        toUpdate.push(p);
+      }
+    }
+    if (toUpdate.length > 0) {
+      await global.ActPhotosDB.putPhotosBatch(toUpdate);
+    }
+    _settings = await global.ActPhotosDB.saveSettings({ globalScalePct: val });
+    render();
+  }
+
+  async function rotateAllLandscapeToPortrait() {
+    const targets = _photos.filter((p) => {
+      const d = getPhotoEffectiveDims(p);
+      return d.width > d.height;
+    });
+    if (targets.length === 0) return;
+
+    const btn = document.getElementById("photo-rotate-landscape-btn");
+    if (btn) btn.disabled = true;
+
+    try {
+      for (const photo of targets) {
+        const curEdits = global.ActPhotosEditor.normalizeEdits(photo.edits);
+        curEdits.rotate = (curEdits.rotate + 90) % 360;
+        photo.edits = curEdits;
+        photo.thumbBlob = await global.ActPhotosEditor.bakeEditedThumb(photo.blob, curEdits);
+      }
+      await global.ActPhotosDB.putPhotosBatch(targets);
+      render();
+      notifyToast(`Повернуто у книжковий формат: ${targets.length} фото`, "success");
+    } catch (err) {
+      console.error("Batch landscape rotation failed:", err);
+      notifyToast("Помилка масового повороту фото", "error");
+    } finally {
+      if (btn) btn.disabled = false;
+    }
+  }
+
   async function handleFilesUpload(fileList) {
     if (_isUploading) {
       notifyToast("Зачекайте завершення поточного стиснення фото", "info");
@@ -439,16 +582,20 @@
     label.textContent = "Підготовка зображень...";
     pctEl.textContent = "0%";
 
+    const autoPortrait = _settings ? _settings.autoPortrait !== false : true;
+
     try {
-      const { results, failedCount, skippedCount } = await global.ActPhotosWorker.compressBatch(
-        fileList,
-        ({ completed, total, originalBytes, compressedBytes }) => {
-          const pct = total > 0 ? Math.round((completed / total) * 100) : 0;
-          fill.style.width = pct + "%";
-          pctEl.textContent = pct + "%";
-          label.textContent = `Стиснення фото: ${completed} / ${total} · ${formatBytes(originalBytes)} → ${formatBytes(compressedBytes)}`;
-        }
-      );
+      const { results, failedCount, skippedCount, autoRotatedCount } =
+        await global.ActPhotosWorker.compressBatch(
+          fileList,
+          ({ completed, total, originalBytes, compressedBytes }) => {
+            const pct = total > 0 ? Math.round((completed / total) * 100) : 0;
+            fill.style.width = pct + "%";
+            pctEl.textContent = pct + "%";
+            label.textContent = `Стиснення фото: ${completed} / ${total} · ${formatBytes(originalBytes)} → ${formatBytes(compressedBytes)}`;
+          },
+          { autoPortrait }
+        );
 
       if (results.length > 0) {
         const baseOrder = _photos.length;
@@ -465,7 +612,7 @@
           compressedSize: entry.result.compressedSize,
           colSpan: null,
           rowSpan: null,
-          scalePct: 100,
+          scalePct: null, // inherits settings.globalScalePct
           edits: Object.assign({}, global.ActPhotosEditor.DEFAULT_EDITS),
           createdAt: now + idx,
         }));
@@ -477,8 +624,9 @@
 
         const origSum = newRecords.reduce((s, p) => s + (p.originalSize || 0), 0);
         const compSum = newRecords.reduce((s, p) => s + (p.compressedSize || 0), 0);
+        const rotNote = autoRotatedCount > 0 ? ` · ↻ у книжковий: ${autoRotatedCount}` : "";
         notifyToast(
-          `Додано фото: ${newRecords.length} (${formatBytes(origSum)} → ${formatBytes(compSum)})`,
+          `Додано фото: ${newRecords.length} (${formatBytes(origSum)} → ${formatBytes(compSum)}${rotNote})`,
           "success"
         );
       }
@@ -586,7 +734,6 @@
           edits: newEdits,
           thumbBlob: editedThumb,
         });
-        // Update image thumbnail in DOM immediately without destroying focus/state
         const cell = document.querySelector(`.photo-cell[data-photo-id="${id}"]`);
         if (cell) {
           const img = cell.querySelector(".photo-cell-img");
@@ -594,6 +741,7 @@
           const editBtn = cell.querySelector(".photo-act-edit");
           if (editBtn) editBtn.classList.toggle("edited", global.ActPhotosEditor.hasEdits(newEdits));
         }
+        syncLandscapeButton();
       } catch (err) {
         console.error("Failed to save mini-editor changes:", err);
       }
@@ -610,7 +758,7 @@
     pop.classList.add("open");
     const rect = anchorBtn.getBoundingClientRect();
     const pw = 250;
-    const ph = pop.offsetHeight || 220;
+    const ph = pop.offsetHeight || 260;
     let left = rect.right - pw;
     let top = rect.bottom + 6;
     if (left < 10) left = 10;
@@ -629,7 +777,8 @@
   function syncSizePopoverValues(photo) {
     const curCol = Math.min(_lastRenderedGrid.cols, Math.max(1, photo.colSpan || 1));
     const curRow = Math.min(_lastRenderedGrid.rows, Math.max(1, photo.rowSpan || 1));
-    const curScale = Math.max(40, Math.min(100, photo.scalePct || 100));
+    const globalScale = (_settings && _settings.globalScalePct) || 100;
+    const curScale = Math.max(40, Math.min(250, photo.scalePct != null ? photo.scalePct : globalScale));
 
     document.getElementById("psp-col-val").textContent = String(curCol);
     document.getElementById("psp-row-val").textContent = String(curRow);
@@ -643,6 +792,9 @@
       btn.disabled = !possible;
       btn.style.opacity = possible ? "" : "0.4";
       btn.classList.toggle("active", photo.colSpan === c && photo.rowSpan === r);
+    });
+    pop.querySelectorAll("[data-pscale]").forEach((btn) => {
+      btn.classList.toggle("active", parseInt(btn.dataset.pscale, 10) === curScale);
     });
   }
 
@@ -684,6 +836,18 @@
     }
   }
 
+  function syncLandscapeButton() {
+    const btn = document.getElementById("photo-rotate-landscape-btn");
+    if (!btn) return;
+    const count = countLandscapePhotos();
+    if (count > 0) {
+      btn.textContent = `↻ Повернути горизонтальні (${count})`;
+      btn.style.display = "";
+    } else {
+      btn.style.display = "none";
+    }
+  }
+
   function syncPhotoPagesField(forceOnZero) {
     if (!_settings || _settings.autoSyncPhotoPages === false) return;
     const input = document.getElementById("photo_pages");
@@ -693,7 +857,9 @@
     const nextVal = pages > 0 ? String(pages) : "";
     if (input.value !== nextVal) {
       input.value = nextVal;
-      if (typeof global.saveData === "function") {
+      if (typeof global._saveDataNow === "function") {
+        global._saveDataNow();
+      } else if (typeof global.saveData === "function") {
         global.saveData();
       }
     }
@@ -711,11 +877,9 @@
       pageCount: layout.pages.length,
     };
 
-    // Revoke stale object URLs
     const validIds = new Set(_photos.map((p) => p.id));
     revokeMissingUrls(validIds);
 
-    // Stats bar
     const totalCompressed = _photos.reduce((s, p) => s + (p.compressedSize || (p.blob ? p.blob.size : 0)), 0);
     const totalOriginal = _photos.reduce((s, p) => s + (p.originalSize || 0), 0);
 
@@ -731,8 +895,9 @@
       savedEl.textContent = "";
     }
 
-    const clearBtn = document.getElementById("photo-clear-btn");
-    clearBtn.disabled = _photos.length === 0;
+    document.getElementById("photo-clear-btn").disabled = _photos.length === 0;
+    document.getElementById("photo-auto-portrait-cb").checked = _settings.autoPortrait !== false;
+    syncLandscapeButton();
 
     // Presets & manual input sync
     const autoBtn = document.getElementById("photo-auto-btn");
@@ -748,6 +913,14 @@
       perPageInput.value = String(layout.effectivePerPage);
     }
 
+    // Global scale controls sync
+    const globalScale = Math.max(40, Math.min(250, _settings.globalScalePct || 100));
+    document.getElementById("photo-global-scale").value = String(globalScale);
+    document.getElementById("photo-global-scale-val").textContent = globalScale + "%";
+    document.querySelectorAll("[data-gscale]").forEach((btn) => {
+      btn.classList.toggle("active", parseInt(btn.dataset.gscale, 10) === globalScale);
+    });
+
     // Asymmetric mode switcher visibility
     const asymRow = document.getElementById("photo-asym-row");
     const showAsym = global.ActPhotosLayout.supportsAsymmetricChoice(layout.effectivePerPage);
@@ -756,16 +929,19 @@
       btn.classList.toggle("active", btn.dataset.asym === (_settings.asymmetricMode || "top-big"));
     });
 
-    // Reset custom cell sizes button
-    const hasCustomSizes = _photos.some(
-      (p) => (p.colSpan && p.colSpan > 0) || (p.rowSpan && p.rowSpan > 0) || (p.scalePct && p.scalePct !== 100)
-    );
+    // Reset custom cell sizes/scale button
+    const hasCustomSizes =
+      globalScale !== 100 ||
+      _photos.some(
+        (p) =>
+          (p.colSpan && p.colSpan > 0) ||
+          (p.rowSpan && p.rowSpan > 0) ||
+          (p.scalePct != null && p.scalePct !== 100)
+      );
     document.getElementById("photo-reset-spans-btn").style.display = hasCustomSizes ? "" : "none";
 
-    // Sidebar badge
     syncSidebarBadge();
 
-    // Render A4 sheets preview
     const listEl = document.getElementById("photo-pages-list");
     if (_photos.length === 0) {
       listEl.innerHTML =
@@ -784,11 +960,16 @@
             const isResized =
               (p.colSpan && p.colSpan > 0) ||
               (p.rowSpan && p.rowSpan > 0) ||
-              (p.scalePct && p.scalePct !== 100);
+              (p.scalePct != null && p.scalePct !== globalScale);
             const spanBadge =
-              pl.colSpan > 1 || pl.rowSpan > 1 || pl.scalePct < 100
-                ? `<span class="photo-cell-span-badge">${pl.colSpan}×${pl.rowSpan}${pl.scalePct < 100 ? " · " + pl.scalePct + "%" : ""}</span>`
+              pl.colSpan > 1 || pl.rowSpan > 1 || pl.scalePct !== 100
+                ? `<span class="photo-cell-span-badge">${pl.colSpan}×${pl.rowSpan}${pl.scalePct !== 100 ? " · " + pl.scalePct + "%" : ""}</span>`
                 : "";
+
+            const imgStyle =
+              pl.scalePct > 100
+                ? `max-width:100%;max-height:100%;transform:scale(${(pl.scalePct / 100).toFixed(3)});transform-origin:center center`
+                : `max-width:${pl.scalePct}%;max-height:${pl.scalePct}%`;
 
             return `
               <div
@@ -798,16 +979,17 @@
                 data-global-idx="${pl.globalIndex}"
                 data-col-span="${pl.colSpan}"
                 data-row-span="${pl.rowSpan}"
+                data-scale-pct="${pl.scalePct}"
                 style="grid-column:${pl.col + 1} / span ${pl.colSpan};grid-row:${pl.row + 1} / span ${pl.rowSpan}"
               >
                 <div class="photo-cell-img-wrap">
-                  <img class="photo-cell-img" src="${url}" alt="" draggable="false" style="max-width:${pl.scalePct}%;max-height:${pl.scalePct}%" />
+                  <img class="photo-cell-img" src="${url}" alt="" draggable="false" style="${imgStyle}" />
                 </div>
                 <span class="photo-cell-num">${pl.globalIndex + 1}</span>
                 ${spanBadge}
                 <div class="photo-cell-actions">
                   <button type="button" class="photo-act-btn photo-act-edit ${isEdited ? "edited" : ""}" title="Міні-редактор (яскравість, контраст, поворот)" draggable="false">🎨</button>
-                  <button type="button" class="photo-act-btn photo-act-resize ${isResized ? "resized" : ""}" title="Розмір комірки" draggable="false">⤢</button>
+                  <button type="button" class="photo-act-btn photo-act-resize ${isResized ? "resized" : ""}" title="Розмір та масштаб комірки" draggable="false">⤢</button>
                   <button type="button" class="photo-act-btn photo-act-extra photo-act-first" title="На початок" draggable="false">⇤</button>
                   <button type="button" class="photo-act-btn photo-act-extra photo-act-last" title="У кінець" draggable="false">⇥</button>
                   <button type="button" class="photo-act-btn photo-act-extra del photo-act-del" title="Видалити фото" draggable="false">✕</button>
@@ -883,6 +1065,7 @@
     render,
     clearAll,
     exportIntoActZip,
+    rotateAllLandscapeToPortrait,
     getPhotos: () => _photos.slice(),
     getSettings: () => Object.assign({}, _settings || global.ActPhotosDB.DEFAULT_SETTINGS),
     getPhotoCount: () => _photos.length,

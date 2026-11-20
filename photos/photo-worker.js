@@ -1,7 +1,8 @@
 /**
  * ActPhotosWorker — Client-side background image compression using a bounded
  * Blob Web Worker + OffscreenCanvas pool, with automatic async <canvas> fallback.
- * Resizes long side to <=1600px JPEG (q=0.82) and generates 400px thumbnails.
+ * Resizes long side to <=1600px JPEG (q=0.82), optionally auto-rotates landscape
+ * photos into portrait orientation for A4 acts, and generates 400px thumbnails.
  */
 (function (global) {
   "use strict";
@@ -14,7 +15,7 @@
 
   const WORKER_SOURCE = `
     self.onmessage = async function (e) {
-      const { taskId, file, maxDim, quality, thumbDim, thumbQuality } = e.data;
+      const { taskId, file, maxDim, quality, thumbDim, thumbQuality, autoPortrait } = e.data;
       let bitmap = null;
       try {
         try {
@@ -25,9 +26,12 @@
 
         const srcW = bitmap.width;
         const srcH = bitmap.height;
+        const needRotate = Boolean(autoPortrait) && srcW > srcH;
         const scale = Math.min(1, maxDim / Math.max(srcW, srcH));
-        const outW = Math.max(1, Math.round(srcW * scale));
-        const outH = Math.max(1, Math.round(srcH * scale));
+        const drawW = Math.max(1, Math.round(srcW * scale));
+        const drawH = Math.max(1, Math.round(srcH * scale));
+        const outW = needRotate ? drawH : drawW;
+        const outH = needRotate ? drawW : drawH;
 
         const canvas = new OffscreenCanvas(outW, outH);
         const ctx = canvas.getContext("2d", { alpha: false });
@@ -35,7 +39,16 @@
         ctx.fillRect(0, 0, outW, outH);
         ctx.imageSmoothingEnabled = true;
         ctx.imageSmoothingQuality = "high";
-        ctx.drawImage(bitmap, 0, 0, outW, outH);
+
+        if (needRotate) {
+          ctx.save();
+          ctx.translate(outW / 2, outH / 2);
+          ctx.rotate(Math.PI / 2);
+          ctx.drawImage(bitmap, -drawW / 2, -drawH / 2, drawW, drawH);
+          ctx.restore();
+        } else {
+          ctx.drawImage(bitmap, 0, 0, outW, outH);
+        }
 
         bitmap.close();
         bitmap = null;
@@ -62,6 +75,7 @@
           thumbBlob,
           width: outW,
           height: outH,
+          autoRotated: needRotate,
           originalSize: file.size || 0,
           compressedSize: blob.size || 0,
         });
@@ -127,6 +141,7 @@
     const quality = (opts && opts.quality) || JPEG_QUALITY;
     const thumbDim = (opts && opts.thumbDim) || THUMB_LONG_SIDE;
     const thumbQuality = (opts && opts.thumbQuality) || THUMB_QUALITY;
+    const autoPortrait = opts && opts.autoPortrait !== undefined ? Boolean(opts.autoPortrait) : true;
 
     let src = null;
     let isBitmap = false;
@@ -144,9 +159,12 @@
 
       const srcW = src.naturalWidth || src.width;
       const srcH = src.naturalHeight || src.height;
+      const needRotate = autoPortrait && srcW > srcH;
       const scale = Math.min(1, maxDim / Math.max(srcW, srcH));
-      const outW = Math.max(1, Math.round(srcW * scale));
-      const outH = Math.max(1, Math.round(srcH * scale));
+      const drawW = Math.max(1, Math.round(srcW * scale));
+      const drawH = Math.max(1, Math.round(srcH * scale));
+      const outW = needRotate ? drawH : drawW;
+      const outH = needRotate ? drawW : drawH;
 
       const canvas = document.createElement("canvas");
       canvas.width = outW;
@@ -156,7 +174,16 @@
       ctx.fillRect(0, 0, outW, outH);
       ctx.imageSmoothingEnabled = true;
       ctx.imageSmoothingQuality = "high";
-      ctx.drawImage(src, 0, 0, outW, outH);
+
+      if (needRotate) {
+        ctx.save();
+        ctx.translate(outW / 2, outH / 2);
+        ctx.rotate(Math.PI / 2);
+        ctx.drawImage(src, -drawW / 2, -drawH / 2, drawW, drawH);
+        ctx.restore();
+      } else {
+        ctx.drawImage(src, 0, 0, outW, outH);
+      }
 
       if (isBitmap && src.close) {
         src.close();
@@ -184,6 +211,7 @@
         thumbBlob,
         width: outW,
         height: outH,
+        autoRotated: needRotate,
         originalSize: file.size || 0,
         compressedSize: blob.size || 0,
       };
@@ -196,8 +224,8 @@
 
   /**
    * Compress a batch of image File objects with bounded worker concurrency.
-   * Calls onProgress({ completed, total, originalBytes, compressedBytes, failed }) after each image.
-   * Returns { results: Array<{ file, result }>, failedCount, skippedCount }.
+   * Calls onProgress({ completed, total, originalBytes, compressedBytes, failedCount }) after each image.
+   * Returns { results: Array<{ file, result }>, failedCount, skippedCount, autoRotatedCount }.
    */
   async function compressBatch(fileList, onProgress, options) {
     const files = Array.from(fileList || []);
@@ -211,7 +239,7 @@
 
     const total = validFiles.length;
     if (total === 0) {
-      return { results: [], failedCount: 0, skippedCount };
+      return { results: [], failedCount: 0, skippedCount, autoRotatedCount: 0 };
     }
 
     const opts = Object.assign(
@@ -220,6 +248,7 @@
         quality: JPEG_QUALITY,
         thumbDim: THUMB_LONG_SIDE,
         thumbQuality: THUMB_QUALITY,
+        autoPortrait: true,
       },
       options || {}
     );
@@ -227,6 +256,7 @@
     const results = new Array(total);
     let completed = 0;
     let failedCount = 0;
+    let autoRotatedCount = 0;
     let originalBytes = 0;
     let compressedBytes = 0;
 
@@ -293,6 +323,7 @@
                   results[idx] = { file, result: msg };
                   originalBytes += msg.originalSize || 0;
                   compressedBytes += msg.compressedSize || 0;
+                  if (msg.autoRotated) autoRotatedCount++;
                 } else {
                   failedCount++;
                   console.warn("Worker compress error for", file.name, msg.error);
@@ -304,12 +335,12 @@
 
               worker.onerror = (err) => {
                 console.warn("Worker runtime error for", file.name, err);
-                // Retry this file on main thread so user doesn't lose photo
                 compressOnMainThread(file, opts)
                   .then((res) => {
                     results[idx] = { file, result: res };
                     originalBytes += res.originalSize || 0;
                     compressedBytes += res.compressedSize || 0;
+                    if (res.autoRotated) autoRotatedCount++;
                   })
                   .catch(() => {
                     failedCount++;
@@ -328,6 +359,7 @@
                 quality: opts.quality,
                 thumbDim: opts.thumbDim,
                 thumbQuality: opts.thumbQuality,
+                autoPortrait: opts.autoPortrait,
               });
             };
 
@@ -343,6 +375,7 @@
             results[idx] = { file, result: res };
             originalBytes += res.originalSize || 0;
             compressedBytes += res.compressedSize || 0;
+            if (res.autoRotated) autoRotatedCount++;
           } catch (err) {
             failedCount++;
             console.warn("Main-thread compress error for", file.name, err);
@@ -365,6 +398,7 @@
       results: results.filter(Boolean),
       failedCount,
       skippedCount,
+      autoRotatedCount,
     };
   }
 

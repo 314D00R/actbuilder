@@ -225,11 +225,24 @@
 
   /**
    * Bake full-resolution photo into JPEG Uint8Array for Word (.docx) export.
-   * Unedited JPEG photos reuse their stored binary bytes directly (zero quality loss).
+   * Supports optional center-crop zoom when scalePct > 100% inside a known cell box
+   * ({ cellInnerW, cellInnerH, scalePct }), matching the UI preview 1:1.
+   * Unedited JPEG photos with scalePct <= 100% reuse stored binary bytes directly.
    */
-  async function bakePhotoForExport(photo) {
+  async function bakePhotoForExport(photo, exportOptions) {
     const edits = normalizeEdits(photo.edits);
-    if (!hasEdits(edits) && photo.blob && photo.blob.type === "image/jpeg") {
+    const opts = exportOptions || {};
+    const scalePct = clamp(
+      opts.scalePct !== undefined ? opts.scalePct : photo.scalePct,
+      40,
+      250,
+      100
+    );
+    const cellInnerW = Number(opts.cellInnerW) || 0;
+    const cellInnerH = Number(opts.cellInnerH) || 0;
+    const needsCropZoom = scalePct > 100 && cellInnerW > 0 && cellInnerH > 0;
+
+    if (!hasEdits(edits) && !needsCropZoom && photo.blob && photo.blob.type === "image/jpeg") {
       const buf = await photo.blob.arrayBuffer();
       return {
         bytes: new Uint8Array(buf),
@@ -240,13 +253,51 @@
 
     const decoded = await decodeBlob(photo.blob);
     try {
-      const { canvas, width, height } = drawSourceToCanvas(decoded.source, edits, null);
-      const bakedBlob = await canvasToJpegBlob(canvas, 0.85);
+      const rendered = drawSourceToCanvas(decoded.source, edits, null);
+      let finalCanvas = rendered.canvas;
+      let outW = rendered.width;
+      let outH = rendered.height;
+      let targetDxaW = null;
+      let targetDxaH = null;
+
+      if (needsCropZoom) {
+        const fitRatio = Math.min(cellInnerW / outW, cellInnerH / outH);
+        const virtW = outW * fitRatio * (scalePct / 100);
+        const virtH = outH * fitRatio * (scalePct / 100);
+        const visW = Math.min(cellInnerW, virtW);
+        const visH = Math.min(cellInnerH, virtH);
+        const visFracX = Math.min(1, visW / virtW);
+        const visFracY = Math.min(1, visH / virtH);
+
+        const cropW = Math.max(1, Math.round(outW * visFracX));
+        const cropH = Math.max(1, Math.round(outH * visFracY));
+        const cropX = Math.max(0, Math.floor((outW - cropW) / 2));
+        const cropY = Math.max(0, Math.floor((outH - cropH) / 2));
+
+        if (cropW < outW || cropH < outH) {
+          const croppedCanvas = document.createElement("canvas");
+          croppedCanvas.width = cropW;
+          croppedCanvas.height = cropH;
+          const cCtx = croppedCanvas.getContext("2d", { alpha: false });
+          cCtx.fillStyle = "#ffffff";
+          cCtx.fillRect(0, 0, cropW, cropH);
+          cCtx.drawImage(rendered.canvas, cropX, cropY, cropW, cropH, 0, 0, cropW, cropH);
+          finalCanvas = croppedCanvas;
+          outW = cropW;
+          outH = cropH;
+        }
+        targetDxaW = visW;
+        targetDxaH = visH;
+      }
+
+      const bakedBlob = await canvasToJpegBlob(finalCanvas, 0.85);
       const buf = await bakedBlob.arrayBuffer();
       return {
         bytes: new Uint8Array(buf),
-        width,
-        height,
+        width: outW,
+        height: outH,
+        targetDxaW,
+        targetDxaH,
       };
     } finally {
       if (decoded.isBitmap && decoded.source.close) {

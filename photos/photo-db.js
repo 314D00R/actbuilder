@@ -18,6 +18,8 @@
     asymmetricMode: "top-big", // "top-big" | "left-big" | "equal-rows"
     showBorders: false,
     autoSyncPhotoPages: true,
+    autoPortrait: true, // Auto-rotate landscape photos to portrait A4 on upload
+    globalScalePct: 100, // 40..250 (%) global photo scale inside cells
   };
 
   let _dbPromise = null;
