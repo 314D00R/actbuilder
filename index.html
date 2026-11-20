@@ -17,6 +17,13 @@
       href="https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;500;600;700;800&display=swap"
       rel="stylesheet"
     />
+    <link rel="stylesheet" href="./photos/photo-styles.css" />
+    <script defer src="./photos/photo-db.js"></script>
+    <script defer src="./photos/photo-worker.js"></script>
+    <script defer src="./photos/photo-layout.js"></script>
+    <script defer src="./photos/photo-editor.js"></script>
+    <script defer src="./photos/photo-docx.js"></script>
+    <script defer src="./photos/photo-ui.js"></script>
     <style>
       :root {
         --bg: #0f1117;
@@ -1588,6 +1595,10 @@
           <button class="nav-item" onclick="openPage('p-volumes', this)">
             <span class="nav-icon">📊</span><span>Зведена таблиця</span>
           </button>
+          <button class="nav-item" onclick="openPage('p-photos', this)">
+            <span class="nav-icon">📷</span><span>Фотофіксація</span
+            ><span class="nav-badge" id="badge-photos" style="display: none"></span>
+          </button>
           <button class="nav-item green-item" onclick="openPage('p-export', this)">
             <span class="nav-icon">📤</span><span>Висновки / Експорт</span>
           </button>
@@ -2183,6 +2194,9 @@
           </div>
         </div>
 
+        <!-- PAGE: PHOTOS -->
+        <div id="p-photos" class="page"></div>
+
         <!-- PAGE: EXPORT -->
         <div id="p-export" class="page">
           <div class="card green">
@@ -2712,6 +2726,7 @@
           "p-facade": "Фасад / Фундамент",
           "p-eng": "Інженерія",
           "p-volumes": "Зведена таблиця",
+          "p-photos": "Фотофіксація",
           "p-export": "Висновки / Експорт",
           "p-database": "База об'єктів",
         };
@@ -2724,6 +2739,7 @@
           document.getElementById("topbar-title").textContent = PAGE_TITLES[id] || id;
           updateBuildingDropdowns();
           if (id === "p-volumes") updateVolumesTable();
+          if (id === "p-photos" && window.ActPhotos) ActPhotos.render();
           if (id === "p-export") validateForm();
         }
 
@@ -4112,20 +4128,26 @@
           }
         }
 
-        function resetData() {
-          if (confirm("Всі дані об'єкта будуть видалені (крім Сталих даних Комісії). Продовжити?")) {
+        async function resetData() {
+          if (confirm("Всі дані об'єкта та фотогалерея будуть видалені (крім Сталих даних Комісії). Продовжити?")) {
+            if (window.ActPhotos) {
+              try { await ActPhotos.clearAll(true); } catch (e) { console.error(e); }
+            }
             localStorage.removeItem("evidnovlennya_save_v14");
             location.reload();
           }
         }
 
-        function duplicateForNewObject() {
+        async function duplicateForNewObject() {
           if (
             !confirm(
-              "Підготувати форму для нового об'єкта?\n\nБудуть очищені адреса, власник, площі та описи.\nЗалишаться: конструктив будівель та сталі дані комісії.",
+              "Підготувати форму для нового об'єкта?\n\nБудуть очищені адреса, власник, площі, описи та фотогалерея.\nЗалишаться: конструктив будівель та сталі дані комісії.",
             )
           )
             return;
+          if (window.ActPhotos) {
+            try { await ActPhotos.clearAll(true); } catch (e) { console.error(e); }
+          }
           [
             "act_date",
             "addr_street",
@@ -4508,13 +4530,16 @@
           return data;
         }
 
-        function generateWord(docType) {
+        let _generatingWord = false;
+        async function generateWord(docType) {
+          if (_generatingWord) return;
           _calcAllNow();
           const templateBase64 = docType === "checklist" ? checklistBase64 : actBase64;
           if (!templateBase64 || templateBase64.includes("ТУТ_КОД_")) {
             alert("Помилка! Додайте код шаблону у Base64.");
             return;
           }
+          _generatingWord = true;
           try {
             const zip = new PizZip(templateBase64, { base64: true });
             const doc = new window.docxtemplater(zip, {
@@ -4523,7 +4548,13 @@
             });
             const dataToWord = collectWordData(docType);
             doc.render(dataToWord);
-            const out = doc.getZip().generate({
+            const renderedZip = doc.getZip();
+            if (docType === "act" && window.ActPhotos && ActPhotos.getPhotoCount() > 0) {
+              const totalPhotos = ActPhotos.getPhotoCount();
+              showToast(`Формування фототаблиці (${totalPhotos} фото)...`, "info", 2500);
+              await ActPhotos.exportIntoActZip(renderedZip);
+            }
+            const out = renderedZip.generate({
               type: "blob",
               mimeType: "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
             });
@@ -4535,6 +4566,8 @@
           } catch (error) {
             alert("Помилка генерації шаблону!\n" + (error.message || ""));
             console.error(error);
+          } finally {
+            _generatingWord = false;
           }
         }
 
@@ -4906,7 +4939,7 @@
           if (root.matches && root.matches('textarea, input[type="text"]')) candidates.push(root);
           if (root.querySelectorAll) candidates.push(...root.querySelectorAll('textarea, input[type="text"]'));
           candidates.forEach((el) => {
-            if (el.closest && el.closest("#login-screen")) return;
+            if (el.closest && el.closest("#login-screen, #p-photos, #photo-editor-overlay, #photo-size-popover")) return;
             if (SPELL_EXCLUDE_IDS.has(el.id)) return;
             setupSpellField(el);
           });
@@ -5181,6 +5214,7 @@
             if (btn) btn.textContent = t === "light" ? "🌙" : "☀️";
           }
           loadData();
+          if (window.ActPhotos) ActPhotos.init();
         };
       </script>
     </div>
